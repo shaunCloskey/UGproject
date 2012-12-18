@@ -1,12 +1,33 @@
 package framework.com;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
+
+import utilites.Survivor;
+
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 
-public class FrameWorkActivity extends Activity {
-    /** Called when the activity is first created. */
+public class FrameWorkActivity extends Activity{
+
+	private static final String TAG = "MyActivity";
+	Button button;
+	private String [] survivorNames ={"bob", "john", "kate", "morgan", "paul", "mary", "liam" , "mark" , "peter" , "greg" , "andrew" , "ed" , "pong" , "jimmy" , "trent" , "sarah" , "cazz" , "mickeal" , "jerry" , "elly"}; 
+  	private ArrayList<String> knownSurvivors = new ArrayList<String>();
+	public static HashMap<String, Survivor> survivors = new HashMap<String, Survivor>(5);
+	
+	private int food = 50;
+	private int resource = 25;
+	private int turnCount = 0;
+  	
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	 super.onCreate(savedInstanceState);
@@ -15,5 +36,60 @@ public class FrameWorkActivity extends Activity {
          // making it full screen
          getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
          // set our MainGamePanel as the View
-         //setContentView(new MainGamePanel(this));
+         setContentView(R.layout.main);
+         
+         Survivor newSurvivor = new Survivor();
+         while(survivors.size() <3)
+		{
+			//TODO
+			//its not creating three random survivor values like i thought it would
+			Random generator = new Random();
+			int randNu  = generator.nextInt(20);
+		
+			String name = survivorNames[randNu];
+			if(!survivors.containsKey(name))
+			{
+				int mob = generator.nextInt(5) + 1;
+				int scav = generator.nextInt(5) + 1;
+				int build = generator.nextInt(5) + 1;
+				int metab = generator.nextInt(5) + 1;
+				newSurvivor = new Survivor(mob, scav, build, metab, name);
+				survivors.put(name, newSurvivor);
+				knownSurvivors.add(name);
+			}
+		}
+		survivors.put("empty slot", newSurvivor);
+			
+		Log.v(TAG, "the amount of known names is = "  + knownSurvivors.size());
+		Log.v(TAG, "survivor names are ");
+		for(String s : knownSurvivors)
+		{
+			Log.v(TAG, s);
+		}
+         
+         
+        button = (Button) findViewById(R.id.button1);
+        button.setOnClickListener(new View.OnClickListener() {
+             public void onClick(View v) {
+            	switch(v.getId())
+         		{
+         		case R.id.button1:
+         			
+         			//bundle the survivors, survivor names and known survivors to the main activity
+         	
+         			//need to pass the value of the surivior in question to the class and the value of food resources and turns.
+         			Intent ourIntent = new Intent(FrameWorkActivity.this, MainScreenActivity.class);
+         			Bundle bundle = new Bundle();
+         			bundle.putInt("food", food);
+         			bundle.putInt("resource", resource);
+         			bundle.putInt("turnCount",turnCount);
+         			//add the list of survivors to the bundle
+         			bundle.putStringArrayList("knownSurvivors", knownSurvivors);
+         			ourIntent.putExtras(bundle);
+         			startActivity(ourIntent);
+         			break;
+         		}
+             }
+         });
+    }
 }

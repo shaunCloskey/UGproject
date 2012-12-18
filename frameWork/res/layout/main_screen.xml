@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/tFood"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="foodCount" />
+    
+    <TextView
+        android:id="@+id/tResources"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="ResourceCount" />
+
+    <TextView
+        android:id="@+id/tTurns"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="turnCount" />
+    
+    <TextView
+        android:id="@+id/tsurHeader"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:text="Survivors:" />
+    
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:orientation="vertical" >
+    	
+    <Button
+        android:id="@+id/bsurOne"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="empty slot"
+        android:layout_weight="20"/>
+    
+    <Button
+        android:id="@+id/bsurTwo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+       android:text="empty slot"
+       android:layout_weight="20"/>
+
+    <Button
+        android:id="@+id/bsurThree"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+       android:text="empty slot"
+       android:layout_weight="20"/>
+    
+     <Button
+        android:id="@+id/bsurFour"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="empty slot"
+        android:layout_weight="20" />
+    
+    <Button
+        android:id="@+id/bsurFive"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="empty slot"
+        android:layout_weight="20" />
+        
+    </LinearLayout>
+    
+    <Button
+   	 		android:id="@+id/bOutTurn"
+   	 		android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	        android:text="finish turn"
+	        android:layout_weight="20" />
+    
+     <TextView
+        android:id="@+id/tFeedbackInfo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="this will give feedback about what will happen in the game, like what events have occured" />
+    
+    
+</LinearLayout>

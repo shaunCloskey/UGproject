@@ -13,6 +13,11 @@ public class probHandler {
 	 * 
 	 */
 	
+	public probHandler()
+	{
+		
+	}
+	
 	/**
 	 * check if the dog event has occured
 	 * 

@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, FrameWorkActivity!</string>
     <string name="app_name">FrameWork</string>
+    <string name="empty">empty slot</string>
 
 </resources>
