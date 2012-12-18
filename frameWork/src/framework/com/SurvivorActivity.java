@@ -24,14 +24,14 @@ import android.widget.Toast;
 
 public class SurvivorActivity extends Activity implements View.OnClickListener{
 
-  	private static final String TAG = "MY ACTIVITY!";
+	private static final String TAG = "MyActivity";
 	Button scavange;
   	Button buildFarm;
   	Button buildSafe;
   	Button moveSafe;
   	Button moveUnsafe;
   	
-  	TextView SurvivorName;
+  	TextView survivorName;
   	TextView metabSkill;
   	TextView scavangeSkill;
   	TextView mobilitySkill;
@@ -42,6 +42,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
 	private int turnCount;
   	private int food;
   	private int resource;
+  	private String feedBack= "";
   	private ArrayList<String> knownSurvivors = new ArrayList<String>();
 	private String [] survivorNames ={"bob", "john", "kate", "morgan", "paul", "mary", "liam" , "mark" , "peter" , "greg" , "andrew" , "ed" , "pong" , "jimmy" , "trent" , "sarah" , "cazz" , "mickeal" , "jerry" , "elly"};
   	
@@ -62,7 +63,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
           moveSafe = (Button) findViewById(R.id.bMoveSafe);
           moveUnsafe = (Button) findViewById(R.id.bMoveUnsafe);
           
-          SurvivorName = (TextView) findViewById(R.id.tSurvivorName);
+          survivorName = (TextView) findViewById(R.id.tSurvivorName);
           metabSkill = (TextView) findViewById(R.id.tSkillMet);
           scavangeSkill = (TextView) findViewById(R.id.tSkillScav);
           mobilitySkill = (TextView) findViewById(R.id.tSkillMobility);
@@ -74,9 +75,12 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
           
           Log.v(TAG, "about to get the bundle");
           
+          survivorName.setText(extras.getString("name"));
           food = extras.getInt("food");
           turnCount = extras.getInt("turnCount");
           resource = extras.getInt("resource");
+          feedBack = extras.getString("feedBack");
+          
           metabSkill.setText("metab rate: " + extras.getInt("metab") );
           scavangeSkill.setText( "Scavange skill: " +extras.getInt("scavange"));
           mobilitySkill.setText("mobility Skill: " + extras.getInt("mobility"));
@@ -106,7 +110,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
   				
   				final Survivor newSurvivor = getNewSurvivor();
   				knownSurvivors.add(newSurvivor.getName());
-  				if(FrameWorkActivity.survivors.size() == 6)
+  				if(FrameWorkActivity.survivors.size() == 5)
   				{
   					//tell the users that they need cant keep the new survivor
   					 Toast.makeText(getApplicationContext(), 
@@ -114,27 +118,32 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
   					 
   					 startNewActivity();
   				}else{
-  					//ask if the player wants to keep the new survivor
-  					DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-  						public void onClick(DialogInterface dialog, int which) {
-  							switch (which){
-  							case DialogInterface.BUTTON_POSITIVE:
-  								//Yes button clicked
-  								FrameWorkActivity.survivors.put(newSurvivor.getName(), newSurvivor);
-  								startNewActivity();
-  								break;
-  							case DialogInterface.BUTTON_NEGATIVE:
-  								//No button clicked
-  								startNewActivity();
-  								break;
-  							}
-  						}
-  					};
   					
   					AlertDialog.Builder builder = new AlertDialog.Builder(this);
-  					builder.setMessage("do you want to take in the new survivor?").setPositiveButton("Yes", dialogClickListener)
-  						.setNegativeButton("No", dialogClickListener).show();
+  					builder.setCancelable(true);
+  					builder.setInverseBackgroundForced(true);
+  					builder.setPositiveButton("Yes", new
+  					DialogInterface.OnClickListener() {
+  						public void onClick(DialogInterface dialog, int which) {
+  							//Yes button clicked
+  							FrameWorkActivity.survivors.put(newSurvivor.getName(), newSurvivor);
+  							startNewActivity();
+  						}
+  					});
+  						
+  					builder.setNegativeButton("no", new
+  					DialogInterface.OnClickListener() {
+  						public void onClick(DialogInterface dialog, int which) {
+  							startNewActivity();
+  						}
+  					});
+  					
+  					
+  					builder.setMessage("do you want to take in the new survivor?");
+  					AlertDialog alert = builder.create();
+  					alert.show();
   				}
+  				break;
   			}else{
   				startNewActivity();
   				break;
@@ -186,6 +195,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
 		bundle.putInt("food", food);
 		bundle.putInt("resource", resource);
 		bundle.putInt("turnCount",turnCount);
+		bundle.putString("feedBack", feedBack);
 		//add the list of survivors to the bundle
 		bundle.putStringArrayList("knownSurvivors", knownSurvivors);
 		ourIntent.putExtras(bundle);

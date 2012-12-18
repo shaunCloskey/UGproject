@@ -76,6 +76,8 @@ public class MainScreenActivity extends Activity {
          
          foodView.setText("food: " + food);
          
+         feedBack = extras.getString("feedback");
+         
          resourceView = (TextView) findViewById(R.id.tResources);
          resource = extras.getInt("resource");
          resourceView.setText("resource: " + resource);
@@ -83,7 +85,9 @@ public class MainScreenActivity extends Activity {
          turnView = (TextView) findViewById(R.id.tTurns);
          turnCount = extras.getInt("turnCount");
          turnView.setText("Turns: " + turnCount);
+         
          eventView = (TextView) findViewById(R.id.tFeedbackInfo);
+         eventView.setText(feedBack);
          
          finishTurn = (Button) findViewById(R.id.bOutTurn);
          finishTurn.setOnClickListener(new View.OnClickListener() {
@@ -112,6 +116,9 @@ public class MainScreenActivity extends Activity {
         	 i++;
          }
          
+         Log.d(TAG, "the number of survivors is "  + FrameWorkActivity.survivors.size());
+         
+         
          final String empty = "empty slot";
          
          survivorOne = (Button) findViewById(R.id.bsurOne);
@@ -125,6 +132,9 @@ public class MainScreenActivity extends Activity {
             	switch(v.getId())
          		{
          		case R.id.bsurOne:
+         			Log.d(TAG, "name of survivor is "  + survivorOne.getText());
+         			Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
+         			
         			String key = (String) survivorOne.getText();
         			if((!key.equals(empty)) && (!alreadyGone(key)) )
         			{
@@ -147,6 +157,7 @@ public class MainScreenActivity extends Activity {
 				switch(v.getId())
 				{
 				case R.id.bsurTwo:
+					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
 					String key = (String) survivorTwo.getText();
 					if(!key.equals(empty) && (!alreadyGone(key)) )
 					{
@@ -170,6 +181,7 @@ public class MainScreenActivity extends Activity {
  				switch(v.getId())
  				{
  				case R.id.bsurThree:
+ 					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
  					String key = (String) survivorThree.getText();
  					if(!key.equals(empty) && (!alreadyGone(key)) )
  					{
@@ -193,6 +205,7 @@ public class MainScreenActivity extends Activity {
  				switch(v.getId())
  				{
  				case R.id.bsurFour:
+ 					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
  					String key = (String) survivorFour.getText();
  					if(!key.equals(empty)  && (!alreadyGone(key)) )
  					{
@@ -216,6 +229,7 @@ public class MainScreenActivity extends Activity {
  				switch(v.getId())
  				{
  				case R.id.bsurFive:
+ 					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
  					String key = (String) survivorFive.getText();
  					if(!key.equals(empty) && (!alreadyGone(key)) )
  					{
@@ -311,16 +325,17 @@ public class MainScreenActivity extends Activity {
   		int desertCount = 0;
   		//TODO create a list of ecevnts as string to pass to the feedback
   		List<String> toRemove =new ArrayList<String>();
+  		Log.d(TAG, "the number of survivors is "  + FrameWorkActivity.survivors.size());
   		//run through all survivors and determine if events have occurred
   		if(turn > 2)
   		{
-  			
+  			Log.d(TAG, "the number of survivors is "  + FrameWorkActivity.survivors.size());
   			//iterate throught the whole hashmap survivor and run events
   			for(Iterator iter = FrameWorkActivity.survivors.entrySet().iterator(); iter.hasNext(); )
   			{
   				HashMap.Entry pairs = (HashMap.Entry)iter.next();
   				Survivor s = (Survivor) pairs.getValue();
-  				
+  				Log.d(TAG, "the name of the survivor is "  + s.getName());
   				
   				boolean dog = prob.eventDog(s);
   				boolean bandit = prob.eventBandit(s);
@@ -354,7 +369,7 @@ public class MainScreenActivity extends Activity {
   					desertCount++;
   					//remove the said survivor from the list
   					toRemove.add((String) pairs.getKey());
-  					
+  					Log.d(TAG, "desert event need to remove " + (String) pairs.getKey());
   				}
   			}
   			dogInfo = "there was " + dogCount +" dog attack, you lost "  + dogCount * dogRed + "  food.\n";
@@ -368,6 +383,8 @@ public class MainScreenActivity extends Activity {
   			{
   				desertInfo.concat(x + " has deserted you! they stole " + desertRed + "food and left.\n");
   				FrameWorkActivity.survivors.remove(x);
+					Log.d(TAG, "removed" + x);
+
   			}
   		}
   		
@@ -400,14 +417,14 @@ public class MainScreenActivity extends Activity {
 		bundle.putInt("mobility", s.getMob());
 		bundle.putInt("metab", s.getMet());
 		bundle.putInt("build", s.getbuilding());
+		bundle.putString("feedBack", feedBack);
 		//add the list of survivors to the bundle
 		bundle.putStringArrayList("knownSurvivors", knownSurvivors);
 		ourIntent.putExtras(bundle);
 		
         startActivity(ourIntent);
 	}
-
-
+	
 	//checks if the user has already used this survivor
 	public boolean alreadyGone(String name)
 	{
@@ -430,6 +447,32 @@ public class MainScreenActivity extends Activity {
         turnView.setText("turnCount: " + turnCount);
         eventView = (TextView) findViewById(R.id.tFeedbackInfo);
         eventView.setText(feedBack);
+        //update list of survivors to buttons
+        
+        survivorOne.setBackgroundDrawable(FrameWorkActivity.defaultButton);
+        survivorTwo.setBackgroundDrawable(FrameWorkActivity.defaultButton);
+        survivorThree.setBackgroundDrawable(FrameWorkActivity.defaultButton);
+        survivorFour.setBackgroundDrawable(FrameWorkActivity.defaultButton);
+        survivorFive.setBackgroundDrawable(FrameWorkActivity.defaultButton);
+        
+        
+        String [] names = {"empty slot", "empty slot", "empty slot", "empty slot", "empty slot" };
+        int i=0;
+        
+        for(Entry<String, Survivor> cursor : FrameWorkActivity.survivors.entrySet())
+        {
+       	 names[i] = cursor.getKey();
+       	 Log.v(TAG, "survivor " + i +" = " + names[i]);
+       	 i++;
+        }
+        
+        
+        survivorOne.setText(names[0]);
+        survivorTwo.setText(names[1]);
+        survivorThree.setText(names[2]);
+        survivorFour.setText(names[3]);
+        survivorFive.setText(names[4]);
+        
 	}
 	
 }

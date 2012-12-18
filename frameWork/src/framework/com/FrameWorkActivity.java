@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.Random;
 
 import utilites.Survivor;
+import utilites.probHandler;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,13 +21,18 @@ public class FrameWorkActivity extends Activity{
 
 	private static final String TAG = "MyActivity";
 	Button button;
+	Button testb;
 	private String [] survivorNames ={"bob", "john", "kate", "morgan", "paul", "mary", "liam" , "mark" , "peter" , "greg" , "andrew" , "ed" , "pong" , "jimmy" , "trent" , "sarah" , "cazz" , "mickeal" , "jerry" , "elly"}; 
   	private ArrayList<String> knownSurvivors = new ArrayList<String>();
 	public static HashMap<String, Survivor> survivors = new HashMap<String, Survivor>(5);
+	public static Drawable defaultButton;
 	
+	
+	private probHandler prob = new probHandler();
 	private int food = 50;
 	private int resource = 25;
 	private int turnCount = 0;
+	private String feedBack = "this will give feedback about what will happen in the game, like what events have occured";
   	
 	/** Called when the activity is first created. */
     @Override
@@ -58,7 +65,6 @@ public class FrameWorkActivity extends Activity{
 				knownSurvivors.add(name);
 			}
 		}
-		survivors.put("empty slot", newSurvivor);
 			
 		Log.v(TAG, "the amount of known names is = "  + knownSurvivors.size());
 		Log.v(TAG, "survivor names are ");
@@ -69,6 +75,7 @@ public class FrameWorkActivity extends Activity{
          
          
         button = (Button) findViewById(R.id.button1);
+        defaultButton = button.getBackground();
         button.setOnClickListener(new View.OnClickListener() {
              public void onClick(View v) {
             	switch(v.getId())
@@ -83,6 +90,7 @@ public class FrameWorkActivity extends Activity{
          			bundle.putInt("food", food);
          			bundle.putInt("resource", resource);
          			bundle.putInt("turnCount",turnCount);
+         			bundle.putString("feedBack", feedBack);
          			//add the list of survivors to the bundle
          			bundle.putStringArrayList("knownSurvivors", knownSurvivors);
          			ourIntent.putExtras(bundle);
