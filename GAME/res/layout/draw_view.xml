@@ -5,7 +5,7 @@
     android:orientation="vertical" >
     
 
-    <com.example.touch.DrawView
+    <com.shaun.game.DrawView
 	    android:id="@+id/drawview"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent" />

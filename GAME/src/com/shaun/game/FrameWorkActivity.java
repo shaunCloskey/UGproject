@@ -21,6 +21,7 @@ public class FrameWorkActivity extends Activity{
 
 	private static final String TAG = "MyActivity";
 	Button button;
+	Button touchButton;
 	Button testb;
 	private String [] survivorNames ={"bob", "john", "kate", "morgan", "paul", "mary", "liam" , "mark" , "peter" , "greg" , "andrew" , "ed" , "pong" , "jimmy" , "trent" , "sarah" , "cazz" , "mickeal" , "jerry" , "elly"}; 
   	private ArrayList<String> knownSurvivors = new ArrayList<String>();
@@ -98,5 +99,29 @@ public class FrameWorkActivity extends Activity{
          		}
              }
          });
+        
+        touchButton = (Button) findViewById(R.id.button2);
+        touchButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				switch(v.getId())
+         		{
+         		case R.id.button2:
+         			Intent ourIntent = new Intent(FrameWorkActivity.this, DrawViewActivity.class);
+         			Bundle bundle = new Bundle();
+         			bundle.putInt("food", food);
+         			bundle.putInt("resource", resource);
+         			bundle.putInt("turnCount",turnCount);
+         			bundle.putString("feedBack", feedBack);
+         			//add the list of survivors to the bundle
+         			bundle.putStringArrayList("knownSurvivors", knownSurvivors);
+         			ourIntent.putExtras(bundle);
+         			startActivity(ourIntent);
+         			break;
+         		}
+			}
+		});
     }
 }
