@@ -55,7 +55,7 @@ public class MainScreenActivity extends Activity {
   	private static final String TAG = "MyActivity";
   	public static String [] usedTurn= {"","","","",""};
   	
-  	private Iterator it = FrameWorkActivity.survivors.entrySet().iterator();
+  	private Iterator it = OpeningScreenActivity.survivors.entrySet().iterator();
   	
   	private String [] survivorNames ={"bob", "john", "kate", "morgan", "paul", "mary", "liam" , "mark" , "peter" , "greg" , "andrew" , "ed" , "pong" , "jimmy" , "trent" , "sarah" , "cazz" , "mickeal" , "jerry" , "elly"}; 
   	private ArrayList<String> knownSurvivors = new ArrayList<String>();
@@ -70,7 +70,7 @@ public class MainScreenActivity extends Activity {
          // making it full screen
          getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
          // set our MainGamePanel as the View
-         setContentView(R.layout.main_screen);
+         setContentView(R.layout.main_game_screen);
          Bundle extras = getIntent().getExtras();
          
          foodView = (TextView) findViewById(R.id.tFood);
@@ -103,7 +103,7 @@ public class MainScreenActivity extends Activity {
  		 				update();
  		 				if(food<0)
  		 				{
- 		 					Intent ourIntent = new Intent(MainScreenActivity.this, FrameWorkActivity.class);
+ 		 					Intent ourIntent = new Intent(MainScreenActivity.this, OpeningScreenActivity.class);
  		 					startActivity(ourIntent);
  		 				}
  		 				break;
@@ -116,14 +116,14 @@ public class MainScreenActivity extends Activity {
          String [] names = {"empty slot", "empty slot", "empty slot", "empty slot", "empty slot" };
          int i=0;
          
-         for(Entry<String, Survivor> cursor : FrameWorkActivity.survivors.entrySet())
+         for(Entry<String, Survivor> cursor : OpeningScreenActivity.survivors.entrySet())
          {
         	 names[i] = cursor.getKey();
         	 Log.v(TAG, "survivor " + i +" = " + names[i]);
         	 i++;
          }
          
-         Log.d(TAG, "the number of survivors is "  + FrameWorkActivity.survivors.size());
+         Log.d(TAG, "the number of survivors is "  + OpeningScreenActivity.survivors.size());
          
          
          final String empty = "empty slot";
@@ -140,7 +140,7 @@ public class MainScreenActivity extends Activity {
          		{
          		case R.id.bsurOne:
          			Log.d(TAG, "name of survivor is "  + survivorOne.getText());
-         			Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
+         			Log.d(TAG, "survivor list is = " + OpeningScreenActivity.survivors);
          			
         			String key = (String) survivorOne.getText();
         			if((!key.equals(empty)) && (!alreadyGone(key)) )
@@ -164,7 +164,7 @@ public class MainScreenActivity extends Activity {
 				switch(v.getId())
 				{
 				case R.id.bsurTwo:
-					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
+					Log.d(TAG, "survivor list is = " + OpeningScreenActivity.survivors);
 					String key = (String) survivorTwo.getText();
 					if(!key.equals(empty) && (!alreadyGone(key)) )
 					{
@@ -188,7 +188,7 @@ public class MainScreenActivity extends Activity {
  				switch(v.getId())
  				{
  				case R.id.bsurThree:
- 					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
+ 					Log.d(TAG, "survivor list is = " + OpeningScreenActivity.survivors);
  					String key = (String) survivorThree.getText();
  					if(!key.equals(empty) && (!alreadyGone(key)) )
  					{
@@ -212,7 +212,7 @@ public class MainScreenActivity extends Activity {
  				switch(v.getId())
  				{
  				case R.id.bsurFour:
- 					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
+ 					Log.d(TAG, "survivor list is = " + OpeningScreenActivity.survivors);
  					String key = (String) survivorFour.getText();
  					if(!key.equals(empty)  && (!alreadyGone(key)) )
  					{
@@ -236,7 +236,7 @@ public class MainScreenActivity extends Activity {
  				switch(v.getId())
  				{
  				case R.id.bsurFive:
- 					Log.d(TAG, "survivor list is = " + FrameWorkActivity.survivors);
+ 					Log.d(TAG, "survivor list is = " + OpeningScreenActivity.survivors);
  					String key = (String) survivorFive.getText();
  					if(!key.equals(empty) && (!alreadyGone(key)) )
  					{
@@ -327,13 +327,13 @@ public class MainScreenActivity extends Activity {
 
   		
   		List<String> toRemove =new ArrayList<String>();
-  		Log.d(TAG, "the number of survivors is "  + FrameWorkActivity.survivors.size());
+  		Log.d(TAG, "the number of survivors is "  + OpeningScreenActivity.survivors.size());
   		//run through all survivors and determine if events have occurred
   		if(turn > 2)
   		{
   			for(String name : unsafeSurvivors )
   			{
-  				Survivor s = FrameWorkActivity.survivors.get(name);
+  				Survivor s = OpeningScreenActivity.survivors.get(name);
   				Log.d(TAG, "the name of the survivor is "  + s.getName());
   				
   				boolean dog = prob.eventDog(s);
@@ -381,14 +381,14 @@ public class MainScreenActivity extends Activity {
   			if(!x.equals(""))
   			{
   				desertInfo.concat(x + " has deserted you! they stole " + desertRed + "food and left.\n");
-  				FrameWorkActivity.survivors.remove(x);
+  				OpeningScreenActivity.survivors.remove(x);
   				safeSurvivor(x);
 					Log.d(TAG, "removed" + x);
 
   			}
   		}
   		
-  		for(Iterator iter = FrameWorkActivity.survivors.entrySet().iterator(); iter.hasNext(); )
+  		for(Iterator iter = OpeningScreenActivity.survivors.entrySet().iterator(); iter.hasNext(); )
 		{
   			HashMap.Entry pairs = (HashMap.Entry)iter.next();
 			Survivor s = (Survivor) pairs.getValue();
@@ -409,7 +409,7 @@ public class MainScreenActivity extends Activity {
 
 
 	private void startActivity(String key) {
-		Survivor s = FrameWorkActivity.survivors.get(key);
+		Survivor s = OpeningScreenActivity.survivors.get(key);
 		//start the new SurvivorActivity
 		//need to pass the value of the surivior in question to the class and the value of food resources and turns.
 		Intent ourIntent = new Intent(MainScreenActivity.this, SurvivorActivity.class);
@@ -454,17 +454,17 @@ public class MainScreenActivity extends Activity {
         eventView.setText(feedBack);
         //update list of survivors to buttons
         
-        survivorOne.setBackgroundDrawable(FrameWorkActivity.defaultButton);
-        survivorTwo.setBackgroundDrawable(FrameWorkActivity.defaultButton);
-        survivorThree.setBackgroundDrawable(FrameWorkActivity.defaultButton);
-        survivorFour.setBackgroundDrawable(FrameWorkActivity.defaultButton);
-        survivorFive.setBackgroundDrawable(FrameWorkActivity.defaultButton);
+        survivorOne.setBackgroundDrawable(OpeningScreenActivity.defaultButton);
+        survivorTwo.setBackgroundDrawable(OpeningScreenActivity.defaultButton);
+        survivorThree.setBackgroundDrawable(OpeningScreenActivity.defaultButton);
+        survivorFour.setBackgroundDrawable(OpeningScreenActivity.defaultButton);
+        survivorFive.setBackgroundDrawable(OpeningScreenActivity.defaultButton);
         
         
         String [] names = {"empty slot", "empty slot", "empty slot", "empty slot", "empty slot" };
         int i=0;
         
-        for(Entry<String, Survivor> cursor : FrameWorkActivity.survivors.entrySet())
+        for(Entry<String, Survivor> cursor : OpeningScreenActivity.survivors.entrySet())
         {
        	 names[i] = cursor.getKey();
        	 Log.v(TAG, "survivor " + i +" = " + names[i]);

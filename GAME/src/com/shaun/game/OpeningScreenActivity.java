@@ -3,8 +3,10 @@ package com.shaun.game;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Map.Entry;
 
 import utilites.Survivor;
+import utilites.Survivors;
 import utilites.probHandler;
 
 import android.app.Activity;
@@ -17,7 +19,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
-public class FrameWorkActivity extends Activity{
+public class OpeningScreenActivity extends Activity{
 
 	private static final String TAG = "MyActivity";
 	Button button;
@@ -27,7 +29,7 @@ public class FrameWorkActivity extends Activity{
   	private ArrayList<String> knownSurvivors = new ArrayList<String>();
 	public static HashMap<String, Survivor> survivors = new HashMap<String, Survivor>(5);
 	public static Drawable defaultButton;
-	
+	public static Survivors survivorsCurrent;
 	
 	private probHandler prob = new probHandler();
 	private int food = 50;
@@ -44,7 +46,7 @@ public class FrameWorkActivity extends Activity{
          // making it full screen
          getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
          // set our MainGamePanel as the View
-         setContentView(R.layout.main);
+         setContentView(R.layout.opening_screen);
          survivors = new HashMap<String, Survivor>(5);
          
          Survivor newSurvivor = new Survivor();
@@ -72,8 +74,17 @@ public class FrameWorkActivity extends Activity{
 		{
 			Log.v(TAG, s);
 		}
-         
-         
+        
+		String [] names = new String[5];
+		int i=0;
+		for(Entry<String, Survivor> cursor : OpeningScreenActivity.survivors.entrySet())
+        {
+       	 names[i] = cursor.getKey();
+       	 i++;
+        }
+		
+		survivorsCurrent = new Survivors(OpeningScreenActivity.survivors.get(names[0]), OpeningScreenActivity.survivors.get(names[1]), OpeningScreenActivity.survivors.get(names[2]), OpeningScreenActivity.survivors.get(names[3]), OpeningScreenActivity.survivors.get(names[4]) );
+		
         button = (Button) findViewById(R.id.button1);
         defaultButton = button.getBackground();
         button.setOnClickListener(new View.OnClickListener() {
@@ -85,7 +96,7 @@ public class FrameWorkActivity extends Activity{
          			//bundle the survivors, survivor names and known survivors to the main activity
          	
          			//need to pass the value of the surivior in question to the class and the value of food resources and turns.
-         			Intent ourIntent = new Intent(FrameWorkActivity.this, MainScreenActivity.class);
+         			Intent ourIntent = new Intent(OpeningScreenActivity.this, MainScreenActivity.class);
          			Bundle bundle = new Bundle();
          			bundle.putInt("food", food);
          			bundle.putInt("resource", resource);
@@ -109,7 +120,7 @@ public class FrameWorkActivity extends Activity{
 				switch(v.getId())
          		{
          		case R.id.button2:
-         			Intent ourIntent = new Intent(FrameWorkActivity.this, DrawViewActivity.class);
+         			Intent ourIntent = new Intent(OpeningScreenActivity.this, newGame.class);
          			Bundle bundle = new Bundle();
          			bundle.putInt("food", food);
          			bundle.putInt("resource", resource);

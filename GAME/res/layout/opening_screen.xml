@@ -14,6 +14,6 @@
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="touch view" />
+        android:text="grid Game" />
 
 </LinearLayout>

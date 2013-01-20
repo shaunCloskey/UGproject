@@ -15,7 +15,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:label="@string/app_name"
-            android:name=".FrameWorkActivity" >
+            android:name="com.shaun.game.OpeningScreenActivity" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,7 +26,17 @@
             android:label="@string/app_name"
             android:name=".MainScreenActivity" >
             <intent-filter >
-                <action android:name="framework.com.MAINSCREENACTIVITY" />
+                <action android:name="com.shaun.game.MAINSCREENACTIVITY" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        
+        <activity
+            android:label="@string/app_name"
+            android:name=".newGame" >
+            <intent-filter >
+                <action android:name="com.shaun.game.NEWGAME" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
@@ -36,18 +46,27 @@
             android:label="@string/app_name"
             android:name=".DrawViewActivity" >
             <intent-filter >
-                <action android:name="framework.com.DRAWVIEWACTIVITY" />
+                <action android:name="com.shaun.game.DRAWVIEWACTIVITY" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         
+          <activity
+            android:label="@string/app_name"
+            android:name=".GameScreenActivity">
+            <intent-filter>
+                <action android:name="com.shaun.game.GAMESCREENACTIVITY"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+         
         
         <activity
             android:label="@string/app_name"
             android:name=".SurvivorActivity">
             <intent-filter>
-                <action android:name="framework.com.SURVIVORACTIVITY"/>
+                <action android:name="com.shaun.game.SURVIVORACTIVITY"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
