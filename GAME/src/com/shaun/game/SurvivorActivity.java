@@ -115,7 +115,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
 					//Yes button clicked
 					//remove from list of survivors and safe
 					 Log.v(TAG, "about to remove " + survivorName +"from the list of survivors" );
-					FrameWorkActivity.survivors.remove(survivorName.getText());
+					OpeningScreenActivity.survivors.remove(survivorName.getText());
 					if( MainScreenActivity.isUnsafe((String) survivorName.getText()) )
 					{
 						MainScreenActivity.safeSurvivor((String) survivorName.getText());
@@ -145,7 +145,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
   				
   				final Survivor newSurvivor = getNewSurvivor();
   				knownSurvivors.add(newSurvivor.getName());
-  				if(FrameWorkActivity.survivors.size() == 5)
+  				if(OpeningScreenActivity.survivors.size() == 5)
   				{
   					//tell the users that they need cant keep the new survivor
   					 Toast.makeText(getApplicationContext(), 
@@ -160,7 +160,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
   					DialogInterface.OnClickListener() {
   						public void onClick(DialogInterface dialog, int which) {
   							//Yes button clicked
-  							FrameWorkActivity.survivors.put(newSurvivor.getName(), newSurvivor);
+  							OpeningScreenActivity.survivors.put(newSurvivor.getName(), newSurvivor);
   							MainScreenActivity.unsafeSurvivor(newSurvivor.getName());
   							startNewActivity();
   						}
