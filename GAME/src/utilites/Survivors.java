@@ -16,11 +16,26 @@ public class Survivors{
 	 * 
 	 */
 	
+	Survivor empty = new Survivor(0, 0, 0, 0, "empty",0,0);
 	private Survivor [] survivors = new Survivor [5];
 	
 	public Survivors()
 	{
+		survivors[0] = empty;
+		survivors[1] = empty;
+		survivors[2] = empty;
+		survivors[3] = empty;
+		survivors[4] = empty;
 		
+	}
+	
+	public Survivors(Survivor one, Survivor two, Survivor three)
+	{
+		survivors[0] = one;
+		survivors[1] = two;
+		survivors[2] = three;
+		survivors[3] = empty;
+		survivors[4] = empty;
 	}
 	
 	public Survivors(Survivor one, Survivor two, Survivor three, Survivor four, Survivor five)

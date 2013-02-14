@@ -422,6 +422,8 @@ public class MainScreenActivity extends Activity {
 		bundle.putInt("mobility", s.getMob());
 		bundle.putInt("metab", s.getMet());
 		bundle.putInt("build", s.getbuilding());
+		bundle.putInt("x", s.getX());
+		bundle.putInt("y", s.getY());
 		bundle.putString("feedBack", feedBack);
 		//add the list of survivors to the bundle
 		bundle.putStringArrayList("knownSurvivors", knownSurvivors);

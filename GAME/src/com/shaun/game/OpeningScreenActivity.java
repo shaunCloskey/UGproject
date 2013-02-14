@@ -62,7 +62,9 @@ public class OpeningScreenActivity extends Activity{
 				int scav = generator.nextInt(5) + 1;
 				int build = generator.nextInt(5) + 1;
 				int metab = generator.nextInt(5) + 1;
-				newSurvivor = new Survivor(mob, scav, build, metab, name);
+				int x = 4;
+				int y = 4;
+				newSurvivor = new Survivor(mob, scav, build, metab, name, x, y);
 				survivors.put(name, newSurvivor);
 				knownSurvivors.add(name);
 			}
@@ -83,7 +85,7 @@ public class OpeningScreenActivity extends Activity{
        	 i++;
         }
 		
-		survivorsCurrent = new Survivors(OpeningScreenActivity.survivors.get(names[0]), OpeningScreenActivity.survivors.get(names[1]), OpeningScreenActivity.survivors.get(names[2]), OpeningScreenActivity.survivors.get(names[3]), OpeningScreenActivity.survivors.get(names[4]) );
+		survivorsCurrent = new Survivors(OpeningScreenActivity.survivors.get(names[0]), OpeningScreenActivity.survivors.get(names[1]), OpeningScreenActivity.survivors.get(names[2]));
 		
         button = (Button) findViewById(R.id.button1);
         defaultButton = button.getBackground();
@@ -110,6 +112,24 @@ public class OpeningScreenActivity extends Activity{
          		}
              }
          });
+        
+        
+        testb = (Button) findViewById(R.id.button3);
+        testb.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				switch(v.getId())
+         		{
+         		case R.id.button3:
+         			Intent ourIntent = new Intent(OpeningScreenActivity.this, DrawViewActivity.class);
+         			
+         			startActivity(ourIntent);
+         			break;
+         		}
+			}
+		});
         
         touchButton = (Button) findViewById(R.id.button2);
         touchButton.setOnClickListener(new View.OnClickListener() {

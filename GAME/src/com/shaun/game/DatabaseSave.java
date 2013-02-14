@@ -1,13 +1,11 @@
 package com.shaun.game;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import utilites.SafePoints;
 import utilites.Survivor;
 import utilites.Survivors;
 
@@ -16,7 +14,7 @@ import utilites.Survivors;
  *  stores survivours, there location, safe points,
  *  the database is ided by save game name, the name holds list of survivors, list of safe locations 
  */
-public class Database extends Activity {
+public class DatabaseSave{
 
 	//this is the boolean value that is used to tell if a table is empty
 	public boolean ISNOT = false;
@@ -30,17 +28,9 @@ public class Database extends Activity {
 	public static final String KEY_TURNCOUNT = "turn_count";
 	public static final String KEY_RESOURCECOUNT = "resource_count";
 	
-	public static final String KEY_SURVIVORID = "_id";
-	private static final String KEY_SURVIVORSNAME = "survivor_name";
-	private static final String KEY_SURVIVORMOB = "survivor_mob";
-	private static final String KEY_SURVIVORBUILDING = "survivor_build";
-	private static final String KEY_SURVIVORMETAB = "survivor_metab";
-	private static final String KEY_SURVIVORSCAV = "survivor_scav";
-	
 	private static final int DATABASE_VERSION = 1;
-	private static final String DATABASE_NAME = "SaveDataBase";
+	private static final String DATABASE_NAME = "SaveData";
 	private static final String DATABASE_SAVE = "save_table";
-	private static final String DATABASE_SURVIVORS = "survivors_table";
 	
 	//this gives us a database helper that handles the opening and closing of the data base
 	private DbHelper theHelper;
@@ -48,16 +38,13 @@ public class Database extends Activity {
 	private SQLiteDatabase theDataBase;
 	
 	
-	public Database(Context c){
+	public DatabaseSave(Context c){
 		theContext = c;
 	}
 	
 	
 	//this is the constructor for the database helper
-	public class DbHelper extends SQLiteOpenHelper{
-
-		
-
+	public static class DbHelper extends SQLiteOpenHelper{
 
 		public DbHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -76,15 +63,6 @@ public class Database extends Activity {
 					KEY_TURNCOUNT + " INTEGER, " +
 					KEY_RESOURCECOUNT + " INTEGER);"
 				);
-			
-			db.execSQL("CREATE TABLE " + DATABASE_SURVIVORS + " (" +
-					KEY_SURVIVORID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-					KEY_SAVENAME + " TEXT NOT NULL, " +
-					KEY_SURVIVORSNAME + " TEXT NOT NULL, " +
-					KEY_SURVIVORMOB + " INTEGER, " +
-					KEY_SURVIVORBUILDING + " INTEGER, " + 
-					KEY_SURVIVORMETAB + "INTEGER);"
-				);
 		}
 			
 			
@@ -92,37 +70,23 @@ public class Database extends Activity {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_SAVE);
-			db.execSQL("DROP TABLE IF EXSITS " + DATABASE_SURVIVORS);
 			onCreate(db);
 		}		
 	}
 	
 	
 	//this class handles adding a new entry to the database
-	public void createEntry(String saveName, int foodCount, int turnCount, int resourceCount)
+	public long  createEntry(String saveName, int foodCount, int turnCount, int resourceCount)
 	{
 		ContentValues cv = new ContentValues();
 		cv.put(KEY_SAVENAME, saveName);
 		cv.put(KEY_FOODCOUNT, foodCount);
 		cv.put(KEY_TURNCOUNT, turnCount);
 		cv.put(KEY_RESOURCECOUNT, resourceCount);
-		theDataBase.insert(DATABASE_SAVE, null, cv);
+		return theDataBase.insert(DATABASE_SAVE, null, cv);
 	}
 	
-	public void createSurEntry(String saveName, int build, int metab, int mob, int scav, String name)
-	{
-		ContentValues cv = new ContentValues();
-		cv.put(KEY_SAVENAME, saveName);
-		cv.put(KEY_SURVIVORBUILDING, build);
-		cv.put(KEY_SURVIVORMETAB, metab);
-		cv.put(KEY_SURVIVORMOB, mob);
-		cv.put(KEY_SURVIVORSCAV, scav);
-		cv.put(KEY_SURVIVORSNAME, name);
-		theDataBase.insert(DATABASE_SURVIVORS, null, cv);
-	}
-	
-	
-	public Database writeOpen() throws SQLException{
+	public DatabaseSave writeOpen() throws SQLException{
 		theHelper = new DbHelper(theContext);
 		theDataBase = theHelper.getWritableDatabase();
 		return this;
@@ -130,7 +94,7 @@ public class Database extends Activity {
 	
 	
 	//opens it but readable
-	public Database readOpen() throws SQLException{
+	public DatabaseSave readOpen() throws SQLException{
 		theHelper = new DbHelper(theContext);
 		theDataBase = theHelper.getReadableDatabase();
 		return this;
@@ -182,7 +146,7 @@ public class Database extends Activity {
 	
 	
 	//this method handles getting the names of locations from the database
-	public String [] getSaveNames(String saveName){
+	public String [] getSaveNames(){
 		String [] data = {KEY_SAVENAME};
 		int size = 0;
 			
@@ -213,35 +177,7 @@ public class Database extends Activity {
 	}
 	
 	
-	public Survivors getSurvivors(String saveName)
-	{
-		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table 
-		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SURVIVORS + " where " + KEY_SAVENAME + "='" + saveName + "'" , null);
-		
-		int buildIndex = c.getColumnIndex(KEY_SURVIVORBUILDING);
-		int scavIndex = c.getColumnIndex(KEY_SURVIVORSCAV);
-		int mobIndex = c.getColumnIndex(KEY_SURVIVORMOB);
-		int metabIndex = c.getColumnIndex(KEY_SURVIVORMETAB);
-		int survNameIndex = c.getColumnIndex(KEY_SURVIVORSNAME);
-		
-		Survivors survivors = new Survivors();
-		int index  = 0;
-		//iterate over the size of the cursor c and add all details to a list of survivors
-		for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
-		{
-			int build = c.getInt(buildIndex);
-			int scav = c.getInt(scavIndex);
-			int mob = c.getInt(mobIndex);
-			int metab = c.getInt(metabIndex);
-			String survName = c.getString(survNameIndex);
-			Survivor survivor = new Survivor(mob, scav, build, metab,  survName);
-			survivors.setSurvivor(survivor, index);
-			index++;
-		}
-		
-		
-		return survivors;
-	}
+	
 	
 	
 	/*public SafePoints getSafePoints(String saveName)
@@ -260,9 +196,18 @@ public class Database extends Activity {
 	{
 		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table 
 		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SAVE + " where " + KEY_SAVENAME + "='" + saveName + "'" , null);
-						
-		int resource = c.getColumnIndex(KEY_RESOURCECOUNT);
-						
+		
+		int resourceIndex = c.getColumnIndex(KEY_RESOURCECOUNT);
+		int nameIndex = c.getColumnIndex(KEY_SAVENAME);
+		
+		int resource = 0;
+		for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+		{
+			if(c.getString(nameIndex).equals(saveName))
+			{
+				resource = c.getInt(resourceIndex);
+			}
+		}
 		return resource;
 	}
 	
@@ -270,14 +215,18 @@ public class Database extends Activity {
 	public int getFoodCount(String saveName)
 	{
 		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table
-		String [] data = {KEY_FOODCOUNT};
-		Cursor c = theDataBase.query(DATABASE_SAVE, data , null, null, null, null, null);
+		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SAVE + " where " + KEY_SAVENAME + "='" + saveName + "'" , null);
 		
 		int foodIndex = c.getColumnIndex(KEY_FOODCOUNT);
+		int nameIndex = c.getColumnIndex(KEY_SAVENAME);
+		
 		int food = 0;
 		for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
 		{
-			food = c.getInt(foodIndex);
+			if(c.getString(nameIndex).equals(saveName))
+			{
+				food = c.getInt(foodIndex);
+			}
 		}
 		return food;
 	}
@@ -288,19 +237,28 @@ public class Database extends Activity {
 		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table 
 		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SAVE + " where " + KEY_SAVENAME + "='" + saveName + "'" , null);
 								
-		int turn = c.getColumnIndex(KEY_TURNCOUNT);
-								
+		int turnIndex = c.getColumnIndex(KEY_TURNCOUNT);
+		int nameIndex = c.getColumnIndex(KEY_SAVENAME);
+		
+		int turn = 0;
+		for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+		{
+			if(c.getString(nameIndex).equals(saveName))
+			{
+				turn = c.getInt(turnIndex);
+			}
+		}
 		return turn;
 	}
 	
 	public void updateEntry(String name, int foodCount, int turnCount, int resourceCount) {
-
 		//this will set up content values that use the keys to correctly address the passed arguments to the data base when update is called on it
 		ContentValues cvUpdate = new ContentValues();
 		cvUpdate.put(KEY_FOODCOUNT, foodCount);
 		cvUpdate.put(KEY_TURNCOUNT, turnCount);
 		cvUpdate.put(KEY_RESOURCECOUNT, resourceCount);
-		theDataBase.update(DATABASE_SAVE, cvUpdate, KEY_SAVENAME + "=" + name, null);
+		
+		theDataBase.update(DATABASE_SAVE, cvUpdate, KEY_SAVENAME + "='" + name +"'", null);
 	}
 	
 	
@@ -313,13 +271,27 @@ public class Database extends Activity {
 		for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
 			size = size+1;
 		}
-		
 		return size;
 	}
 	
 	
 	public void removeEntry(String saveName, int type) {
-		theDataBase.delete(DATABASE_SAVE, KEY_SAVENAME + "=" + saveName, null);
+		theDataBase.delete(DATABASE_SAVE, KEY_SAVENAME + "='" + saveName +"'", null);
+	}
+
+	/**
+	 * check to see if the database contains entry with save name
+	 * @param name save name
+	 * @return boolean 
+	 */
+	public boolean containsName(String name) {
+		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SAVE + " where " + KEY_SAVENAME + "='" + name + "'" , null);
+		if(c.getCount() == 0)
+		{
+			return false;
+		}else{
+			return true;
+		}
 	}
 	
 }

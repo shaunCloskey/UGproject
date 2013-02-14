@@ -38,6 +38,9 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
   	TextView mobilitySkill;
   	TextView buildSkill;
   	
+  	int x;
+  	int y;
+  	
   	Survivor survivor;
 	private int turnCount;
   	private int food;
@@ -88,12 +91,15 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
           resource = extras.getInt("resource");
           feedBack = extras.getString("feedBack");
           
+          x = extras.getInt("x");
+          y = extras.getInt("y");
+          
           metabSkill.setText("metab rate: " + extras.getInt("metab") );
           scavangeSkill.setText( "Scavange skill: " +extras.getInt("scavange"));
           mobilitySkill.setText("mobility Skill: " + extras.getInt("mobility"));
           buildSkill.setText("building Skill: " + extras.getInt("build"));
           
-          survivor =  new Survivor(extras.getInt("mobility"), extras.getInt("scavange"),extras.getInt("build"), extras.getInt("metab"), extras.getString("name"));
+          survivor =  new Survivor(extras.getInt("mobility"), extras.getInt("scavange"),extras.getInt("build"), extras.getInt("metab"), extras.getString("name"), x, y);
           
           knownSurvivors = extras.getStringArrayList("knownSurvivors");
   	 }
@@ -296,7 +302,7 @@ public class SurvivorActivity extends Activity implements View.OnClickListener{
    				int scav = generator.nextInt(5) + 1;
    				int build = generator.nextInt(5) + 1;
    				int metab = generator.nextInt(5) + 1;
-   				newSurvivor = new Survivor(mob, scav, build, metab, newName);
+   				newSurvivor = new Survivor(mob, scav, build, metab, newName,4,4);
    				break;
    			}
    		}

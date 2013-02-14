@@ -40,4 +40,10 @@
         android:layout_height="wrap_content"
         android:text="empty" />
 
+    <Button
+        android:id="@+id/deleteb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="delete database" />
+
 </LinearLayout>

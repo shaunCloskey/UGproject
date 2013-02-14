@@ -25,7 +25,10 @@ public class Survivor {
 	private int scavange = 0;
 	private int building = 0;
 	private int metab = 0;
-	private String name= ""; 
+	private String name= "";
+	private int xPoint;
+	private int yPoint;
+	
 	
 	private boolean safe = true;
 	
@@ -33,13 +36,15 @@ public class Survivor {
 		
 	}
 	
-	public Survivor(int mob, int scav, int build, int metab, String name)
+	public Survivor(int mob, int scav, int build, int metab, String name, int x, int y)
 	{
 		this.building = build;
 		this.metab = metab;
 		this.mobility = mob;
 		this.scavange = scav;
 		this.name = name;
+		this.xPoint = x;
+		this.yPoint = y;
 	}
 	
 	public int getMob()
@@ -90,5 +95,25 @@ public class Survivor {
 	public void setName(String name)
 	{
 		this.name = name;
+	}
+	
+	public int getX()
+	{
+		return this.xPoint;
+	}
+	
+	public void setX(int x)
+	{
+		this.xPoint = x;
+	}
+	
+	public int getY()
+	{
+		return this.yPoint;
+	}
+	
+	public void setY(int y)
+	{
+		this.yPoint = y;
 	}
 }
