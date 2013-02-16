@@ -4,6 +4,7 @@ import utilites.Survivor;
 import utilites.Survivors;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class GameScreenActivity extends Activity {
 	
@@ -37,6 +39,8 @@ public class GameScreenActivity extends Activity {
 	private int resource;
 	private int turn;
 	private int survivorCount;
+	
+	private Context context = this.context;
 	
 	private static final String TAG = "MyActivity";
 	private Survivors survivors;
@@ -126,6 +130,9 @@ public class GameScreenActivity extends Activity {
 				}else{
 					// replace the database info with current progress
 					updateDataBase(name);
+					
+					Toast toast = Toast.makeText(context, "game saved successfully", Toast.LENGTH_SHORT);
+					toast.show();
 				}
 				
 			}

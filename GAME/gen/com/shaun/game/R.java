@@ -12,26 +12,33 @@ public final class R {
     }
     public static final class drawable {
         public static final int barber=0x7f020000;
-        public static final int grocer=0x7f020001;
-        public static final int groupsur=0x7f020002;
-        public static final int house1=0x7f020003;
-        public static final int house2=0x7f020004;
-        public static final int ic_launcher=0x7f020005;
-        public static final int man=0x7f020006;
-        public static final int snoopy=0x7f020007;
-        public static final int snoopy2=0x7f020008;
+        public static final int bluesquare=0x7f020001;
+        public static final int grocer=0x7f020002;
+        public static final int groupsur=0x7f020003;
+        public static final int house1=0x7f020004;
+        public static final int house2=0x7f020005;
+        public static final int ic_launcher=0x7f020006;
+        public static final int man=0x7f020007;
+        public static final int redman=0x7f020008;
+        public static final int snoopy=0x7f020009;
+        public static final int snoopy2=0x7f02000a;
     }
     public static final class id {
         public static final int bBuildFarm=0x7f07002c;
+        public static final int bBuildfarm=0x7f070038;
+        public static final int bBuildstruc=0x7f070039;
         public static final int bBuildstructure=0x7f07002e;
         public static final int bDropSur=0x7f070022;
+        public static final int bDropSurvivor=0x7f07002f;
         public static final int bHome=0x7f070008;
+        public static final int bMove=0x7f070036;
         public static final int bMoveSafe=0x7f07002a;
         public static final int bMoveUnsafe=0x7f07002b;
         public static final int bOutTurn=0x7f070013;
         public static final int bPause=0x7f070007;
         public static final int bQuit=0x7f070006;
         public static final int bSave=0x7f070009;
+        public static final int bScavange=0x7f070037;
         public static final int bScavanged=0x7f070029;
         public static final int bUseFarm=0x7f07002d;
         public static final int bsurFive=0x7f070012;
@@ -45,7 +52,7 @@ public final class R {
         public static final int deleteb=0x7f07001b;
         public static final int drawview=0x7f070000;
         public static final int map=0x7f070005;
-        public static final int menu_settings=0x7f07002f;
+        public static final int menu_settings=0x7f07003a;
         public static final int newGame=0x7f070015;
         public static final int save1=0x7f070016;
         public static final int save2=0x7f070017;
@@ -56,6 +63,7 @@ public final class R {
         public static final int spinOk=0x7f070020;
         public static final int spinsur=0x7f07001f;
         public static final int tCoord=0x7f070028;
+        public static final int tCoordinate=0x7f070035;
         public static final int tFeedbackInfo=0x7f070014;
         public static final int tFood=0x7f07000a;
         public static final int tFoodCount=0x7f070001;
@@ -63,10 +71,15 @@ public final class R {
         public static final int tResourcesCount=0x7f070002;
         public static final int tSkillBuilding=0x7f070027;
         public static final int tSkillMet=0x7f070024;
+        public static final int tSkillMetab=0x7f070031;
         public static final int tSkillMobility=0x7f070026;
         public static final int tSkillScav=0x7f070025;
+        public static final int tSkillScavange=0x7f070032;
+        public static final int tSkillbuilding=0x7f070034;
+        public static final int tSkillmobility=0x7f070033;
         public static final int tSurCount=0x7f070004;
         public static final int tSurvivorName=0x7f070023;
+        public static final int tSurvivorsName=0x7f070030;
         public static final int tTurns=0x7f07000c;
         public static final int tTurnsCount=0x7f070003;
         public static final int tsurHeader=0x7f07000d;
@@ -80,6 +93,7 @@ public final class R {
         public static final int opening_screen=0x7f030005;
         public static final int sur_list=0x7f030006;
         public static final int survivor_info=0x7f030007;
+        public static final int survivor_pop=0x7f030008;
     }
     public static final class menu {
         public static final int activity_main=0x7f060000;

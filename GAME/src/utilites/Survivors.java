@@ -47,6 +47,18 @@ public class Survivors{
 		survivors[4] = five;
 	}
 	
+	public void removeSurvivors(String name)
+	{
+		for(int i =0; i<survivors.length; i++)
+		{
+			if(name.equals(survivors[i].getName()))
+			{
+				survivors[i] = empty;
+				break;
+			}
+		}
+	}
+	
 	public Survivor [] getSurvivors()
 	{
 		return this.survivors;

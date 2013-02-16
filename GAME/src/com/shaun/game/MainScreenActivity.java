@@ -325,7 +325,6 @@ public class MainScreenActivity extends Activity {
   		int fireCount =0;
   		int desertCount = 0;
 
-  		
   		List<String> toRemove =new ArrayList<String>();
   		Log.d(TAG, "the number of survivors is "  + OpeningScreenActivity.survivors.size());
   		//run through all survivors and determine if events have occurred

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/bDropSurvivor"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="drop survivor" />
+    
+    <TextView
+        android:id="@+id/tSurvivorsName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="NAME" />
+    
+     <TextView
+        android:id="@+id/tSkillMetab"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Met level" />
+    
+    <TextView
+        android:id="@+id/tSkillScavange"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="scavenge skill level" />
+
+    <TextView
+        android:id="@+id/tSkillmobility"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="mobility Skill level" />
+    
+     <TextView
+        android:id="@+id/tSkillbuilding"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="buildind skill level" />
+
+     <TextView
+        android:id="@+id/tCoordinate"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Current location " />
+     
+     
+     <Button
+   	 		android:id="@+id/bMove"
+   	 		android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	        android:text="move the survivor"
+	        android:layout_weight="20" />
+      <Button
+   	 		android:id="@+id/bScavange"
+   	 		android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	        android:text="scavange Location"
+	        android:layout_weight="20" />
+    	
+    <Button
+   			android:id="@+id/bBuildfarm"
+   			android:layout_width="fill_parent"
+		   	android:layout_height="wrap_content"
+	       	android:text="build farm"
+	       	android:layout_weight="20" />
+    
+    <Button
+   	 		android:id="@+id/bBuildstruc"
+   	 		android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	        android:text="build a safe structure "
+	        android:layout_weight="20" />
+</LinearLayout>

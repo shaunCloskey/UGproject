@@ -16,6 +16,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -40,8 +41,10 @@ public class DrawView extends View {
 	private Bitmap house4;
 	private Bitmap tempIcon;
 	private Bitmap singleMan;
+	private Bitmap redMan;
 	private Bitmap group;
 	private Bitmap mIcon;
+	private Bitmap moveImage;
 	
 	private Survivors survivors;
 	private ArrayList<Point> surPoints = new ArrayList<Point>();
@@ -56,7 +59,9 @@ public class DrawView extends View {
 	Matrix matrix;
 	Matrix oMatrix;
 	float [] m = new float [9];
-	    
+	
+	private String empty =  "empty";
+	
 	private float mLastTouchX;
 	private float mLastTouchY;
 	private static final int INVALID_POINTER_ID = -1;
@@ -85,6 +90,18 @@ public class DrawView extends View {
 	private float yIndent = 0;
 	private float xIndent = 0;
 
+	private boolean moveMode = false;
+	private Survivor movingSurvivor = new Survivor(0, 0, 0, 0, "empty",0,0);
+	private ArrayList<Point> movePlace= new ArrayList<Point>();
+	
+	
+	private ArrayList<Survivor> usedSurvivor = new ArrayList<Survivor>();
+	private ArrayList<Point> usedPoint = new ArrayList<Point>();
+	
+	private Point multiOne = new Point(-1,-1);
+	private ArrayList<Survivor> multiOneSur = new ArrayList<Survivor>();
+	private Point multiTwo = new Point(-1,-1);
+	private ArrayList<Survivor> multiTwoSur = new ArrayList<Survivor>();
 	
 	public DrawView(Context context) {
 		super(context, null, 0);
@@ -108,6 +125,7 @@ public class DrawView extends View {
 	{
 		tempIcon = BitmapFactory.decodeResource(getResources(), R.drawable.snoopy);
 		singleMan = BitmapFactory.decodeResource(getResources(), R.drawable.man);
+		redMan = BitmapFactory.decodeResource(getResources(), R.drawable.redman);
 		group = BitmapFactory.decodeResource(getResources(), R.drawable.groupsur);
 		
 		// Create our ScaleGestureDetector
@@ -117,7 +135,7 @@ public class DrawView extends View {
 		house2 = BitmapFactory.decodeResource(getResources(), R.drawable.house2);
 		house3 = BitmapFactory.decodeResource(getResources(), R.drawable.barber);
 		house4 = BitmapFactory.decodeResource(getResources(), R.drawable.grocer);
-		
+		moveImage = BitmapFactory.decodeResource(getResources(), R.drawable.bluesquare);
 		
 		
 		DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -134,33 +152,63 @@ public class DrawView extends View {
 	@Override
 	public void onDraw(Canvas canvas) {
 	    super.onDraw(canvas);
-	    clipBounds_canvas = canvas.getClipBounds();
-	    canvas.save();
-	    canvas.translate(mPosX, mPosY);
-	    canvas.scale(mScaleFactor, mScaleFactor);
-	    matrix = canvas.getMatrix();
-	    drawGrid(canvas);
-	    //canvas.drawBitmap(mIcon, 0, 0, null);
-	    //canvas.drawBitmap(overlay, 100, 100, null);
-	    if(survivors != null)
-	    {
-	    	drawSur(canvas);
-	    }
-	    matrix.getValues(m);
-	    if(firstRun)
-	    {
-	    	xIndent = m[2];
-	    	yIndent = m[5];
-	    	firstRun = false;
-	    }
+	    if(moveMode){
+	    	clipBounds_canvas = canvas.getClipBounds();
+	    	canvas.save();
+	    	canvas.translate(mPosX, mPosY);
+	    	canvas.scale(mScaleFactor, mScaleFactor);
+	    	matrix = canvas.getMatrix();
+	    	drawMoveGrid(canvas);
+	    	if(survivors != null)
+	    	{
+	    		drawSur(canvas);
+	    	}
+	    	matrix.getValues(m);
+	    	if(firstRun)
+	    	{
+	    		xIndent = m[2];
+	    		yIndent = m[5];
+	    		firstRun = false;
+	    	}
 	    
-	    //m[2] is the x translation
-	    //m[5] is the y translation
-	    float x = (m[2] / mScaleFactor) - xIndent;
-	    float y = (m[5] / mScaleFactor) - yIndent;
-	    Log.v(TAG, "matrix = " + matrix + "x trans = " +  x + " y translation "  + y);
+	    	//m[2] is the x translation
+	    	//m[5] is the y translation
+	    	float x = (m[2] / mScaleFactor) - xIndent;
+	    	float y = (m[5] / mScaleFactor) - yIndent;
+	    	Log.v(TAG, "matrix = " + matrix + "x trans = " +  x + " y translation "  + y);
 	    
-	    canvas.restore();
+	    	canvas.restore();
+	    	
+	    }else{
+	    	clipBounds_canvas = canvas.getClipBounds();
+	    	canvas.drawColor(0, Mode.CLEAR);
+	    	canvas.save();
+	    	canvas.translate(mPosX, mPosY);
+	    	canvas.scale(mScaleFactor, mScaleFactor);
+	    	matrix = canvas.getMatrix();
+	    	drawGrid(canvas);
+	    	//canvas.drawBitmap(mIcon, 0, 0, null);
+	    	//canvas.drawBitmap(overlay, 100, 100, null);
+	    	if(survivors != null)
+	    	{
+	    		drawSur(canvas);
+	    	}
+	    	matrix.getValues(m);
+	    	if(firstRun)
+	    	{
+	    		xIndent = m[2];
+	    		yIndent = m[5];
+	    		firstRun = false;
+	    	}
+	    
+	    	//m[2] is the x translation
+	    	//m[5] is the y translation
+	    	float x = (m[2] / mScaleFactor) - xIndent;
+	    	float y = (m[5] / mScaleFactor) - yIndent;
+	    	Log.v(TAG, "matrix = " + matrix + "x trans = " +  x + " y translation "  + y);
+	    
+	    	canvas.restore();
+	    }
 	}
 	
 	/**
@@ -202,9 +250,145 @@ public class DrawView extends View {
 		
 	}
 
+	public void drawMoveGrid(Canvas canvas)
+	{
+		float oneGridHeight = viewHeight / 9;
+		float oneGridWidth = viewWidth / 9;
+		
+		Bitmap grid1 = Bitmap.createScaledBitmap(house1, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap grid2 = Bitmap.createScaledBitmap(house2, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap grid3 = Bitmap.createScaledBitmap(house3, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap grid4 = Bitmap.createScaledBitmap(house4, (int) oneGridWidth, (int) oneGridHeight, true);
+		
+		for(int y=0; y<9;y++)
+		{
+			//do the first 9 across draws for the groups
+			for(int i=0; i<9; i++)
+			{	
+				int gridPlace = ((i+1)*(y+1)) % 4;
+				switch(gridPlace)
+				{
+				case(0):
+					canvas.drawBitmap(grid1, i*oneGridWidth, y*oneGridHeight,null);
+					break;
+				case(1):
+					canvas.drawBitmap(grid2, i*oneGridWidth, y*oneGridHeight,null);
+					break;
+				case(2):
+					canvas.drawBitmap(grid3, i*oneGridWidth, y*oneGridHeight,null);
+					break;
+				case(3):
+					canvas.drawBitmap(grid4, i*oneGridWidth, y*oneGridHeight,null);
+					break;
+				}
+			}
+		}
+		
+		//after drawing the grid place blue squares where the player can move to
+		drawMove(canvas);
+	}
 	
+	private void drawMove(Canvas canvas) {
+		/*
+		 * take the moveingSurvivor and get coordinates x, y,
+		 * get his mobility skill
+		 * now grow out a list of all the points that the survivor can reach based on his mobility
+		 * go thorugh the list and draw the colour of the movable space  
+		 */
+		int x = movingSurvivor.getX();
+		int y = movingSurvivor.getY();
+		
+		int mobility = movingSurvivor.getMob();
+		
+		//the plus add
+		for(int i=1; i<=mobility; i++)
+		{
+			int newX = x+ i;
+			if(newX<=8)
+			{
+				Point point = new Point(newX, y);
+				movePlace.add(point);
+			}
+			int newY = y+i;
+			if(newY<=8)
+			{
+				Point point = new Point(x, newY);
+				movePlace.add(point);
+			}
+			
+			
+			newX = x-i;
+			if(newX >=0)
+			{
+				Point point = new Point(newX, y);
+				movePlace.add(point);
+			}
+			
+			newY = y-i;
+			if(newY>=0)
+			{
+				Point point = new Point(x, newY);
+				movePlace.add(point);
+			}
+			
+			Point point = new Point(0, 0);
+			int z = mobility - i;
+			for(int j =1; j<=z; j++)
+			{
+				newX = x+i;
+				newY = y+j;
+				if(newX<=8 && newY<=8)
+				{	
+					point = new Point(newX, newY);
+					movePlace.add(point);
+				}
+				
+				newX = x+i;
+				newY = y-j;
+				if(newX<=8 && newY>=0)
+				{
+					point = new Point(newX, newY);
+					movePlace.add(point);
+				}
+				
+				newX = x-i;
+				newY = y+j;
+				if(newX>=0 && newY<=8)
+				{
+					point = new Point(newX, newY);
+					movePlace.add(point);
+				}
+				
+				newX = x-i;
+				newY = y-j;
+				if(newX>=0 && newY>=0)
+				{
+					point = new Point(newX, newY);
+					movePlace.add(point);
+				}
+				
+			}
+			
+		}
+	
+		//now use movePlace to draw the points
+		float oneGridHeight = viewHeight / 9;
+		float oneGridWidth = viewWidth / 9;
+		
+		Bitmap moveGrid = Bitmap.createScaledBitmap(moveImage, (int) oneGridWidth, (int) oneGridHeight, true);
+		for(Point point: movePlace)
+		{
+			canvas.drawBitmap(moveGrid, point.x*oneGridWidth, point.y*oneGridHeight,null);
+		}
+		
+	}
+
 	public void drawSur(Canvas canvas)
 	{
+		multiPoint = new ArrayList<Point>();
+		surPoints = new ArrayList<Point>();
+		
+		
 		Log.d(TAG, "size of the survivors = " + survivors.getSurvivors().length);
 		//iterate through all the survivors and place them on the map
 		for(Survivor tempSurvivor: survivors.getSurvivors())
@@ -226,9 +410,26 @@ public class DrawView extends View {
 				}else{
 					if(multiPoint.contains(point))
 					{
-					
+						//its either in multione or multiTwo
+						if(multiOne.x==point.x && multiOne.y==point.y)
+						{
+							multiOne = point;
+							multiOneSur.add(tempSurvivor);
+						}else{
+							multiTwo = point;
+							multiTwoSur.add(tempSurvivor);
+						}
 					}else{
+						//new multipoint
 						multiPoint.add(point);
+						if(multiOne.x==-1 && multiOne.y==-1)
+						{
+							multiOne = point;
+							multiOneSur.add(tempSurvivor);
+						}else{
+							multiTwo = point;
+							multiTwoSur.add(tempSurvivor);
+						}
 					}
 				}
 				for(Point tPoint: multiPoint)
@@ -241,6 +442,7 @@ public class DrawView extends View {
 			float oneGridWidth = viewWidth / 9;
 		
 			Bitmap singleSur = Bitmap.createScaledBitmap(singleMan, (int) oneGridWidth, (int) oneGridHeight, true);
+			Bitmap redSur = Bitmap.createScaledBitmap(redMan, (int) oneGridWidth, (int) oneGridHeight, true);
 			Bitmap groupSur = Bitmap.createScaledBitmap(group, (int) oneGridWidth, (int) oneGridHeight, true);
 		
 			for(Point point:surPoints)
@@ -248,15 +450,30 @@ public class DrawView extends View {
 				//drawOnePerson
 				if(!multiPoint.contains(point))
 				{
-					canvas.drawBitmap(singleSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
+					
+					if(usedPoint.contains(point))
+					{
+						canvas.drawBitmap(redSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
+					}else{
+						canvas.drawBitmap(singleSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
+					}
+				}else{
 				}
-			
 			}
 		
 			for(Point point:multiPoint)
 			{
 				//drawMultiPeople
-				canvas.drawBitmap(groupSur, point.x*oneGridWidth, point.y*oneGridHeight, null);
+				//TODO check if any of the people in point that belongs two are used 
+				
+				if(multiOne.x == point.x && multiOne.y == point.y)
+				{
+					//check number of sur in multiOneSur that are used
+					canvas.drawBitmap(groupSur, point.x*oneGridWidth, point.y*oneGridHeight, null);
+				}else{
+					//check the number of sur in multiTwoSur that are used
+					
+				}
 			}
 		}
 		
@@ -405,31 +622,59 @@ public class DrawView extends View {
     	
     	Log.d(TAG, "square = " + squareX + " " +squareY );
     	
-    	ArrayList<Survivor> clickedSur = new ArrayList<Survivor>();
-    	//get a list of all survivors in the clicked square
-    	for(Survivor survivor:survivors.getSurvivors())
+    	if(moveMode)
     	{
-    		Log.d(TAG, "surx = " + survivor.getX() + " surY = " + survivor.getY());
-    		if(survivor.getX() == squareX && survivor.getY() == squareY )
+    		Point point =  new Point(squareX, squareY);
+    		if(movePlace.contains(point))
     		{
+    			//move the movingSurvivor to the new location
+    			movingSurvivor.setX(squareX);
+    			movingSurvivor.setY(squareY);
     			
-    			if(!clickedSur.contains(survivor))
+    			survivors.removeSurvivors(movingSurvivor.getName());
+    			int i =0;
+    			for(Survivor survivor: survivors.getSurvivors())
     			{
-    				Log.d(TAG, "adding sur to clickedSur");
-    				clickedSur.add(survivor);
+    				if(survivor.getName().equals(empty))
+    				{
+    					survivors.setSurvivor(movingSurvivor, i);
+    					moveMode = false;
+    	    			movingSurvivor = new Survivor(0, 0, 0, 0, "empty",0,0);
+    	    			movePlace= new ArrayList<Point>();
+    	    			invalidate();
+    					break;
+    				}
+    				i++;
     			}
     		}
-    	}
-    	ArrayList <String> survivorNames = new ArrayList<String>();
-    	for(Survivor survivor:clickedSur )
-    	{
-    		Log.d(TAG, "add to surNames");
-    		survivorNames.add(survivor.getName());
-    	}
-    	Log.d(TAG, "survNames.length = " + survivorNames.size());
-    	if(survivorNames.size()>0)
-    	{
-    		listSur(survivorNames);
+    		
+    	}else{
+    		ArrayList<Survivor> clickedSur = new ArrayList<Survivor>();
+    		//get a list of all survivors in the clicked square
+    		for(Survivor survivor:survivors.getSurvivors())
+    		{
+    			Log.d(TAG, "surx = " + survivor.getX() + " surY = " + survivor.getY());
+    			if(survivor.getX() == squareX && survivor.getY() == squareY )
+    			{
+    			
+    				if(!clickedSur.contains(survivor))
+    				{
+    					Log.d(TAG, "adding sur to clickedSur");
+    					clickedSur.add(survivor);
+    				}
+    			}
+    		}
+    		ArrayList <String> survivorNames = new ArrayList<String>();
+    		for(Survivor survivor:clickedSur )
+    		{
+    			Log.d(TAG, "add to surNames");
+    			survivorNames.add(survivor.getName());
+    		}
+    		Log.d(TAG, "survNames.length = " + survivorNames.size());
+    		if(survivorNames.size()>0)
+    		{
+    			listSur(survivorNames);
+    		}
     	}
     }
 	
@@ -448,7 +693,7 @@ public class DrawView extends View {
 			list[i] = clickedSur.get(i);
 		}
 		final String [] surList = list;
-		b.setSingleChoiceItems(surList, -1, new DialogInterface.OnClickListener() {
+		b.setSingleChoiceItems(surList, 0, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int item) {  
 				//item is the index of the chosen item
 			}
@@ -463,6 +708,12 @@ public class DrawView extends View {
             }
 		});
 		
+		b.setNegativeButton("cancel",  new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int item) {  
+				
+			}
+		});
+		
 		AlertDialog alert = b.create();
 		alert.show();
 		
@@ -475,8 +726,8 @@ public class DrawView extends View {
 	 * @param index shows index of the survivor that has been chosen
 	 */
 	public void surMenu(String name){
-		Dialog dialog = new Dialog(gameContext);
-		dialog.setContentView(R.layout.survivor_info);
+		final Dialog dialog = new Dialog(gameContext);
+		dialog.setContentView(R.layout.survivor_pop);
 		dialog.setTitle("select action for survivor");
 		
 		//set up the text and info for the survivor info and the buttons
@@ -494,43 +745,43 @@ public class DrawView extends View {
 	  	TextView mobilitySkill;
 	  	TextView buildSkill;
 	  	
-	  	Survivor survivor = new Survivor();
-		int turnCount;
-	  	int food;
-	  	int resource;
+	  	Survivor tempSurvivor = new Survivor();
 
 	  	//get the info from sorrect survivor
 	  	
 	  	for(Survivor sur: survivors.getSurvivors())
 	  	{
 	  		if(sur.getName().equals(name)){
-	  			survivor = sur;
+	  			tempSurvivor = sur;
 	  		}
 	  	}
-	  	drop = (Button) dialog.findViewById(R.id.bDropSur);
-        scavange = (Button) dialog.findViewById(R.id.bScavanged);
-        buildFarm = (Button) dialog.findViewById(R.id.bBuildFarm);
-        useFarm = (Button) dialog.findViewById(R.id.bUseFarm);
-        buildSafe = (Button) dialog.findViewById(R.id.bBuildstructure);
-        move = (Button) dialog.findViewById(R.id.bMoveSafe);
+	  	
+	  	final Survivor survivor = tempSurvivor;
+	  	
+	  	drop = (Button) dialog.findViewById(R.id.bDropSurvivor);
+        scavange = (Button) dialog.findViewById(R.id.bScavange);
+        buildFarm = (Button) dialog.findViewById(R.id.bBuildfarm);
+        buildSafe = (Button) dialog.findViewById(R.id.bBuildstruc);
+        move = (Button) dialog.findViewById(R.id.bMove);
         
-        survivorName = (TextView) dialog.findViewById(R.id.tSurvivorName);
-        metabSkill = (TextView) dialog.findViewById(R.id.tSkillMet);
-        scavangeSkill = (TextView) dialog.findViewById(R.id.tSkillScav);
-        mobilitySkill = (TextView) dialog.findViewById(R.id.tSkillMobility);
-        buildSkill = (TextView) dialog.findViewById(R.id.tSkillBuilding);
+        survivorName = (TextView) dialog.findViewById(R.id.tSurvivorsName);
+        metabSkill = (TextView) dialog.findViewById(R.id.tSkillMetab);
+        scavangeSkill = (TextView) dialog.findViewById(R.id.tSkillScavange);
+        mobilitySkill = (TextView) dialog.findViewById(R.id.tSkillmobility);
+        buildSkill = (TextView) dialog.findViewById(R.id.tSkillbuilding);
         
         survivorName.setText(survivor.getName());
-        metabSkill.setText(survivor.getMet());
-        scavangeSkill.setText(survivor.getScav());
-        mobilitySkill.setText(survivor.getMob());
-        buildSkill.setText(survivor.getbuilding());
+        metabSkill.setText("metab: " + survivor.getMet());
+        scavangeSkill.setText("Scavange: " + survivor.getScav());
+        mobilitySkill.setText("mobility: " + survivor.getMob());
+        buildSkill.setText("build: " + survivor.getbuilding());
         
         drop.setOnClickListener(new OnClickListener() {
         	//remove the survivor
         	@Override
         	public void onClick(View v) {
-        		
+        		survivors.removeSurvivors(survivor.getName());
+        		dialog.dismiss();
         	}
         });
         
@@ -550,14 +801,6 @@ public class DrawView extends View {
         	}
         });
         
-        useFarm.setOnClickListener(new OnClickListener() {
-        	//useFarm
-        	@Override
-        	public void onClick(View v) {
-        		
-        	}
-        });
-        
         buildSafe.setOnClickListener(new OnClickListener() {
         	@Override
         	public void onClick(View v) {
@@ -569,12 +812,31 @@ public class DrawView extends View {
         	//this requires change to on draw method set a bool value to make the method act slightly different and draw a translutent area around the parts of the grid the person can move to
         	@Override
         	public void onClick(View v) {
-        		
+        		setMove(survivor);
+        		characterUsed(survivor);
+        		dialog.dismiss();
         	}
         });
-        
+        dialog.show();
 	}
 	
+	private void characterUsed(Survivor survivor) {
+		Point point = new Point(survivor.getX(),survivor.getY());
+		usedPoint.add(point);
+		usedSurvivor.add(survivor);
+	}
+	
+	private void emptyUsedSur()
+	{
+		usedSurvivor.clear();
+	}
+	
+	public void setMove(Survivor survivor)
+	{
+		moveMode = true;
+		movingSurvivor = survivor;
+		invalidate();
+	}
 	
 	public void giveContext(Context context)
 	{
