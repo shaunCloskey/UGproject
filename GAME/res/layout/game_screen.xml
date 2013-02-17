@@ -82,7 +82,7 @@
         	android:text="QUIT" />
         
         	<Button
-        	android:id="@+id/bPause"
+        	android:id="@+id/bEndTurn"
         	android:layout_width="wrap_content"
         	android:layout_height="fill_parent"
         	android:text="end Turn" />

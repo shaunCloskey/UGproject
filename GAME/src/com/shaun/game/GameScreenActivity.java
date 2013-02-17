@@ -1,13 +1,22 @@
 package com.shaun.game;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
 import utilites.Survivor;
 import utilites.Survivors;
+import utilites.probHandler;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -28,22 +37,32 @@ public class GameScreenActivity extends Activity {
 	private Button tTurn;
 	private Button tSurvivorCount;
 	
-	private Button bPause;
+	private Button bEndTurn;
 	private Button bHome;
 	private Button bQuit;
 	private Button bSave;
 	
 	private DrawView drawView;
 	
+	private probHandler prob = new probHandler();
+	
+	private int dogRed = 1;
+  	private int banditRed = 2;
+  	private int fireRed = 4;
+  	private int desertRed = 5;
+	
 	private int food;
 	private int resource;
 	private int turn;
 	private int survivorCount;
 	
-	private Context context = this.context;
+	private Context context;
 	
 	private static final String TAG = "MyActivity";
 	private Survivors survivors;
+	
+	private ArrayList<Point> safePoints = new ArrayList<Point>();	
+	private ArrayList<Point> farmPoints = new ArrayList<Point>();
 	
 	private DatabaseSave database = new DatabaseSave(GameScreenActivity.this);
 	private DatabaseSurvivor surData = new DatabaseSurvivor(GameScreenActivity.this); 
@@ -57,7 +76,7 @@ public class GameScreenActivity extends Activity {
          // set our MainGamePanel as the View
          setContentView(R.layout.game_screen);
          
-         
+         context = getApplicationContext();
          drawView = (DrawView) findViewById(R.id.map);
          drawView.giveContext(this);
          Bundle extras = getIntent().getExtras();
@@ -71,20 +90,34 @@ public class GameScreenActivity extends Activity {
          
          tFood = (Button) findViewById(R.id.tFoodCount);
          tFood.setText("food:" + food);
+         tFood.setTextSize(10);
          
          tResource = (Button) findViewById(R.id.tResourcesCount);
-         tResource.setText("res:" + resource);
+         tResource.setText("resource:" + resource);
+         tResource.setTextSize(10);;
          
          tTurn = (Button) findViewById(R.id.tTurnsCount);
          tTurn.setText("turn:" + turn);
-         
-         tSurvivorCount = (Button) findViewById(R.id.tSurCount);
-         tSurvivorCount.setText("NO surv:" + survivorCount);
+         tTurn.setTextSize(10);
          
          //take the database survivor info and store it
          surData.writeOpen();
          survivors = surData.getSurvivors(name);
          surData.writeClose();
+         int surCount = 0;
+         for(Survivor survivor:survivors.getSurvivors())
+         {
+        	 if(!survivor.getName().equals(empty))
+        	 {
+        		 surCount++;
+        	 }
+         }
+         
+         survivorCount = surCount;
+         
+         tSurvivorCount = (Button) findViewById(R.id.tSurCount);
+         tSurvivorCount.setText("surv Count:" + survivorCount);
+         tSurvivorCount.setTextSize(10);
          
          Log.d(TAG, "about to set survivors in draw view");
          drawView.setSurvivors(survivors);
@@ -92,12 +125,18 @@ public class GameScreenActivity extends Activity {
          Log.d(TAG, "survivors = " + sur[0].getName());
          
          
-         bPause = (Button) findViewById(R.id.bPause);
-         bPause.setOnClickListener(new View.OnClickListener(){
+         bEndTurn = (Button) findViewById(R.id.bEndTurn);
+         bEndTurn.setOnClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				//TODO Auto-generated method stub
+				turn++;
+				betweenTurnEvents(turn);
+				update();
+				drawView.emptyUsedSur();
+				
+				
 				
 			}
         	 
@@ -130,7 +169,7 @@ public class GameScreenActivity extends Activity {
 				}else{
 					// replace the database info with current progress
 					updateDataBase(name);
-					
+
 					Toast toast = Toast.makeText(context, "game saved successfully", Toast.LENGTH_SHORT);
 					toast.show();
 				}
@@ -187,6 +226,118 @@ public class GameScreenActivity extends Activity {
 
 			 alert.show();
 	 }
+	 
+	 /**
+	  * runs though all the probabilities for the game and determines if an event has occured
+	  * 
+	  */
+	 public void betweenTurnEvents(int turn )
+	 {
+	 	String dogInfo = "";
+	 	String banditInfo = "";
+	  	String fireInfo = "";
+	  	String desertInfo = "";
+	  		
+	  	int dogCount=0;
+	  	int bandCount =0;
+	  	int fireCount =0;
+	  	int desertCount = 0;
+
+	  	safePoints = drawView.getSafe();
+	  	farmPoints = drawView.getFarm();
+	  	
+	  	survivors = drawView.getSurvivors();
+	  	
+	  	List<String> toRemove =new ArrayList<String>();
+	  	Log.d(TAG, "the number of survivors is "  + OpeningScreenActivity.survivors.size());
+	  		
+	  		
+	  	//run through all survivors and determine if events have occurred
+	  		
+	  	if(turn > 2)
+	  	{
+	  		for(Survivor survivor : survivors.getSurvivors() )
+	  		{
+	  			boolean isSafe = false;
+	  			Point surPoint = new Point(survivor.getX(), survivor.getY());
+	  			isSafe = safePoints.contains(surPoint);
+	  			for(Point point: safePoints)
+	  			{
+	  				Point testPointUp = new Point(surPoint.x, surPoint.y - 1);
+	  				Point testPointDown = new Point(surPoint.x, surPoint.y + 1);
+	  				Point testPointLeft = new Point(surPoint.x-1, surPoint.y);
+	  				Point testPointRight = new Point(surPoint.x+1, surPoint.y);
+	  				
+	  				if(surPoint.equals(testPointUp) ||surPoint.equals(testPointDown) ||surPoint.equals(testPointLeft) ||surPoint.equals(testPointRight) )
+	  				{
+	  					isSafe = true;
+	  				}
+	  				
+	  			}
+	  			
+	  			if(!isSafe)
+	  			{
+	  				boolean dog = prob.eventDog(survivor);
+	  				boolean bandit = prob.eventBandit(survivor);
+	  				boolean fire = prob.eventFire(survivor);
+	  				boolean desert = prob.eventDesert(survivor);
+	  			
+	  				//use the values returned from the methods to find the values for the food lost and display the list of events to the player etc
+	  				if(dog)
+	  				{
+	  					food -= dogRed;
+	  					dogCount++;
+	  				}
+	  			
+	  				if(bandit)
+	  				{
+	  					food -= banditRed;
+	  					bandCount++;
+	  				}
+	  			
+	  				if(fire)
+	  				{
+	  					food -= fireRed;
+	  					fireCount++;
+	  				}
+	  			
+	  				if(desert)
+	  				{
+	  					food -= desertRed;
+	  					desertCount++;
+	  					//remove the said survivor from the list
+	  					toRemove.add(name);
+	  					Log.d(TAG, "desert event need to remove " + name);
+	  				}
+	  			}
+	  			dogInfo = "there was " + dogCount +" dog attack, you lost "  + dogCount * dogRed + "  food.\n";
+	  			banditInfo = "there was " + bandCount +" bandit raid you lost " + bandCount * banditRed + " food.\n";
+	  			fireInfo = "there was " + fireCount + " fire you lost " + fireCount * fireRed + " food.\n";
+	  		}
+	  	}
+	  	
+	  	for(String x : toRemove)
+	  	{
+	  		if(!x.equals(""))
+	  		{
+	  			desertInfo.concat(x + " has deserted you! they stole " + desertRed + "food and left.\n");
+	  			survivors.removeSurvivors(x);
+	  			Log.d(TAG, "removed" + x);
+	  		}
+	  	}
+  		
+	  	for(Survivor survivor: survivors.getSurvivors())
+	  	{
+	  		int metab = survivor.getMet();
+	  		food -= (int) (metab/2);
+	  	}
+	  		
+	  	int manedFarms = drawView.getMaddedFarms();
+	  	food += manedFarms * 4;
+	  	String farmInfo = "you recieved " + (manedFarms * 4) + "food from farms.\n";
+  		manedFarms  = 0;
+  		//feedBack = dogInfo + banditInfo + fireInfo + desertInfo + farmInfo;
+  	 }
 	 
 	 /**
 	  * replace info on tables with new info
@@ -265,6 +416,35 @@ public class GameScreenActivity extends Activity {
 
 			 alert.show();
 	 }
+	 
+	 private void update() {
+		 tFood = (Button) findViewById(R.id.tFoodCount);
+         tFood.setText("food:" + food);
+         
+         tResource = (Button) findViewById(R.id.tResourcesCount);
+         tResource.setText("res:" + resource);
+         
+         tTurn = (Button) findViewById(R.id.tTurnsCount);
+         tTurn.setText("turn:" + turn);
+         
+         tSurvivorCount = (Button) findViewById(R.id.tSurCount);
+         tSurvivorCount.setText("NO surv:" + survivorCount);
+         
+         drawView.setSurvivors(survivors);
+         
+         int surCount = 0;
+         for(Survivor survivor:survivors.getSurvivors())
+         {
+        	 if(!survivor.getName().equals(empty))
+        	 {
+        		 surCount++;
+        	 }
+         }
+         
+         survivorCount = surCount;
+         tSurvivorCount.setText("NO surv:" + survivorCount);
+	     
+		}
 	 
 	 
 }

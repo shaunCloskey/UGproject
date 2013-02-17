@@ -42,6 +42,8 @@ public class DrawView extends View {
 	private Bitmap tempIcon;
 	private Bitmap singleMan;
 	private Bitmap redMan;
+	private Bitmap partGroup;
+	private Bitmap usedGroup;
 	private Bitmap group;
 	private Bitmap mIcon;
 	private Bitmap moveImage;
@@ -49,6 +51,9 @@ public class DrawView extends View {
 	private Survivors survivors;
 	private ArrayList<Point> surPoints = new ArrayList<Point>();
 	private ArrayList<Point> multiPoint = new ArrayList<Point>();
+	
+	private ArrayList<Point> safePoints = new ArrayList<Point>();	
+	private ArrayList<Point> farmPoints = new ArrayList<Point>();
 	
 	private Boolean moving = false;
 	
@@ -94,6 +99,7 @@ public class DrawView extends View {
 	private Survivor movingSurvivor = new Survivor(0, 0, 0, 0, "empty",0,0);
 	private ArrayList<Point> movePlace= new ArrayList<Point>();
 	
+	private int mannedFarms =0;
 	
 	private ArrayList<Survivor> usedSurvivor = new ArrayList<Survivor>();
 	private ArrayList<Point> usedPoint = new ArrayList<Point>();
@@ -126,7 +132,10 @@ public class DrawView extends View {
 		tempIcon = BitmapFactory.decodeResource(getResources(), R.drawable.snoopy);
 		singleMan = BitmapFactory.decodeResource(getResources(), R.drawable.man);
 		redMan = BitmapFactory.decodeResource(getResources(), R.drawable.redman);
+		partGroup = BitmapFactory.decodeResource(getResources(), R.drawable.partgroup);
+		usedGroup = BitmapFactory.decodeResource(getResources(), R.drawable.redgroup);
 		group = BitmapFactory.decodeResource(getResources(), R.drawable.groupsur);
+		
 		
 		// Create our ScaleGestureDetector
 	
@@ -388,6 +397,10 @@ public class DrawView extends View {
 		multiPoint = new ArrayList<Point>();
 		surPoints = new ArrayList<Point>();
 		
+		multiOne = new Point(-1,-1);
+		multiOneSur = new ArrayList<Survivor>();
+		multiTwo = new Point(-1,-1);
+		multiTwoSur = new ArrayList<Survivor>();
 		
 		Log.d(TAG, "size of the survivors = " + survivors.getSurvivors().length);
 		//iterate through all the survivors and place them on the map
@@ -435,44 +448,107 @@ public class DrawView extends View {
 				for(Point tPoint: multiPoint)
 				{
 					
-						while(surPoints.remove(tPoint)) { }
+						while(surPoints.contains(tPoint)) {surPoints.remove(tPoint); }
 				}
 			}
-			float oneGridHeight = viewHeight / 9;
-			float oneGridWidth = viewWidth / 9;
+		}
 		
-			Bitmap singleSur = Bitmap.createScaledBitmap(singleMan, (int) oneGridWidth, (int) oneGridHeight, true);
-			Bitmap redSur = Bitmap.createScaledBitmap(redMan, (int) oneGridWidth, (int) oneGridHeight, true);
-			Bitmap groupSur = Bitmap.createScaledBitmap(group, (int) oneGridWidth, (int) oneGridHeight, true);
+		float oneGridHeight = viewHeight / 9;
+		float oneGridWidth = viewWidth / 9;
 		
-			for(Point point:surPoints)
+		Bitmap singleSur = Bitmap.createScaledBitmap(singleMan, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap redSur = Bitmap.createScaledBitmap(redMan, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap oneUsed = Bitmap.createScaledBitmap(partGroup, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap used = Bitmap.createScaledBitmap(usedGroup, (int) oneGridWidth, (int) oneGridHeight, true);
+		Bitmap groupSur = Bitmap.createScaledBitmap(group, (int) oneGridWidth, (int) oneGridHeight, true);
+			
+			
+		
+		for(Point point:surPoints)
+		{
+			//drawOnePerson
+			if(!multiPoint.contains(point))
 			{
-				//drawOnePerson
-				if(!multiPoint.contains(point))
-				{
 					
-					if(usedPoint.contains(point))
+				if(usedPoint.contains(point))
+				{
+					canvas.drawBitmap(redSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
+				}else{
+					canvas.drawBitmap(singleSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
+				}
+			}else{
+			}
+		}
+			
+		int multiOneSurSize = multiOneSur.size();
+		int countOne =0;
+			
+		int multiTwoSurSize = multiTwoSur.size();
+		int countTwo =0;
+			
+			
+		for(Point point:multiPoint)
+		{
+			//drawMultiPeople
+			//check if any of the people in point that belongs two are used 
+			
+			if(multiOne.x == point.x && multiOne.y == point.y)
+			{
+				//check number of sur in multiOneSur that are used
+				for(Survivor survivor: multiOneSur)
+				{
+					if(usedSurvivor.contains(survivor))
 					{
-						canvas.drawBitmap(redSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
-					}else{
-						canvas.drawBitmap(singleSur, point.x*oneGridWidth, point.y*oneGridHeight,null);
+						countOne++;
 					}
-				}else{
+				}
+			}else{
+				//check the number of sur in multiTwoSur that are used
+				for(Survivor survivor: multiTwoSur)
+				{
+					if(usedSurvivor.contains(survivor))
+					{
+						countTwo++;
+					}
 				}
 			}
-		
-			for(Point point:multiPoint)
+		}
+			
+		if(multiOne.x == -1 || multiOne.y == -1)
+		{
+			//multiOne not set so dont draw
+		}else{
+			//check the size of count to determine what to draw
+			if(countOne==0)
 			{
-				//drawMultiPeople
-				//TODO check if any of the people in point that belongs two are used 
-				
-				if(multiOne.x == point.x && multiOne.y == point.y)
+				canvas.drawBitmap(groupSur, multiOne.x*oneGridWidth, multiOne.y*oneGridHeight, null);
+			}else{
+				//its greater than 0 so check if it == the size of multiSur
+				if(countOne==multiOneSurSize)
 				{
-					//check number of sur in multiOneSur that are used
-					canvas.drawBitmap(groupSur, point.x*oneGridWidth, point.y*oneGridHeight, null);
+					canvas.drawBitmap(used, multiOne.x*oneGridWidth, multiOne.y*oneGridHeight, null);
 				}else{
-					//check the number of sur in multiTwoSur that are used
-					
+					canvas.drawBitmap(oneUsed, multiOne.x*oneGridWidth, multiOne.y*oneGridHeight, null);
+				}
+				
+			}
+		}
+			
+		if(multiTwo.x == -1 || multiTwo.y == -1)
+		{
+			//multiTwo not set so dont draw
+		}else{
+			//check the size of count to determine what to draw
+			if(countTwo==0)
+			{
+				canvas.drawBitmap(groupSur, multiTwo.x*oneGridWidth, multiTwo.y*oneGridHeight, null);
+			}else{
+				//its greater than 0 so check if it == the size of multiSur
+				if(countTwo==multiTwoSurSize)
+				{
+					canvas.drawBitmap(used, multiTwo.x*oneGridWidth, multiTwo.y*oneGridHeight, null);
+				}else{
+					canvas.drawBitmap(oneUsed, multiTwo.x*oneGridWidth, multiTwo.y*oneGridHeight, null);
 				}
 			}
 		}
@@ -627,6 +703,7 @@ public class DrawView extends View {
     		Point point =  new Point(squareX, squareY);
     		if(movePlace.contains(point))
     		{
+    			
     			//move the movingSurvivor to the new location
     			movingSurvivor.setX(squareX);
     			movingSurvivor.setY(squareY);
@@ -638,6 +715,7 @@ public class DrawView extends View {
     				if(survivor.getName().equals(empty))
     				{
     					survivors.setSurvivor(movingSurvivor, i);
+    					characterUsed(movingSurvivor);
     					moveMode = false;
     	    			movingSurvivor = new Survivor(0, 0, 0, 0, "empty",0,0);
     	    			movePlace= new ArrayList<Point>();
@@ -667,8 +745,11 @@ public class DrawView extends View {
     		ArrayList <String> survivorNames = new ArrayList<String>();
     		for(Survivor survivor:clickedSur )
     		{
-    			Log.d(TAG, "add to surNames");
-    			survivorNames.add(survivor.getName());
+    			if(!usedSurvivor.contains(survivor))
+    			{
+    				Log.d(TAG, "add to surNames");
+    				survivorNames.add(survivor.getName());
+    			}
     		}
     		Log.d(TAG, "survNames.length = " + survivorNames.size());
     		if(survivorNames.size()>0)
@@ -789,7 +870,7 @@ public class DrawView extends View {
         	//do the scavange method
         	@Override
         	public void onClick(View v) {
-        		
+        		addSafe(survivor);
         	}
         });
         
@@ -797,7 +878,7 @@ public class DrawView extends View {
         	//do build farm
         	@Override
         	public void onClick(View v) {
-        		
+        		addFarm(survivor);
         	}
         });
         
@@ -813,12 +894,36 @@ public class DrawView extends View {
         	@Override
         	public void onClick(View v) {
         		setMove(survivor);
-        		characterUsed(survivor);
         		dialog.dismiss();
         	}
         });
         dialog.show();
 	}
+	
+	private void addSafe(Survivor survivor)
+	{
+		//
+		Point point = new Point(survivor.getX(), survivor.getY());
+		safePoints.add(point);
+	}
+	
+	public ArrayList<Point> getSafe()
+	{
+		return this.safePoints;
+	}
+	
+	private void addFarm(Survivor survivor)
+	{
+		//
+		Point point = new Point(survivor.getX(), survivor.getY());
+		farmPoints.add(point);
+	}
+	
+	public ArrayList<Point> getFarm()
+	{
+		return this.farmPoints;
+	}
+	
 	
 	private void characterUsed(Survivor survivor) {
 		Point point = new Point(survivor.getX(),survivor.getY());
@@ -826,9 +931,11 @@ public class DrawView extends View {
 		usedSurvivor.add(survivor);
 	}
 	
-	private void emptyUsedSur()
+	public void emptyUsedSur()
 	{
+		usedPoint.clear();
 		usedSurvivor.clear();
+		invalidate();
 	}
 	
 	public void setMove(Survivor survivor)
@@ -845,8 +952,8 @@ public class DrawView extends View {
 	
 	public void setSurvivors(Survivors survivorsNew)
 	{
-		Survivor[] sur = survivorsNew.getSurvivors();
 		this.survivors = survivorsNew;
+		invalidate();
 	}
 	
 	public Survivors getSurvivors()
@@ -876,5 +983,14 @@ public class DrawView extends View {
 	   mIcon = Bitmap.createScaledBitmap(tempIcon, viewWidth, viewHeight, true);
 	   
 	   super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	}
+
+	public int getMaddedFarms() {
+		return mannedFarms;
+	}
+	
+	public void setMannedFarms()
+	{
+		this.mannedFarms = 0;
 	}
 }

@@ -73,4 +73,5 @@ public class Survivors{
 	{
 		this.survivors = newSurvivors;
 	}
+	
 }
