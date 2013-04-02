@@ -123,7 +123,6 @@ public class DatabaseSurvivor{
 	
 	public Survivors getSurvivors(String saveName)
 	{
-		//TODO the database does not recognise the colum for scav X and Y need to fix this.
 		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table 
 		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SURVIVORS + " where " + KEY_SAVENAME + "='" + saveName + "'" , null);
 		
@@ -186,6 +185,16 @@ public class DatabaseSurvivor{
 	 */
 	public boolean containsName(String name) {
 		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SURVIVORS + " where " + KEY_SAVENAME + "='" + name + "'" , null);
+		if(c.getCount() == 0)
+		{
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	public boolean containsSurName(String name, String surName) {
+		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SURVIVORS + " where " + KEY_SAVENAME + "='" + name + "'"  + " AND KEY_SURVIVORNAME" + "='" +  surName + "'" , null);
 		if(c.getCount() == 0)
 		{
 			return false;

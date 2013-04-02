@@ -59,13 +59,6 @@
 		    android:layout_height="wrap_content"
 	        android:text="scavange Location"
 	        android:layout_weight="20" />
-    	
-    <Button
-   			android:id="@+id/bBuildfarm"
-   			android:layout_width="fill_parent"
-		   	android:layout_height="wrap_content"
-	       	android:text="build farm"
-	       	android:layout_weight="20" />
     
     <Button
    	 		android:id="@+id/bBuildstruc"

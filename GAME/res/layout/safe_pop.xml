@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/bsDropSurvivor"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="drop survivor" />
+    
+    <TextView
+        android:id="@+id/tsSurvivorsName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="NAME" />
+    
+     <TextView
+        android:id="@+id/tsSkillMetab"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Met level" />
+    
+    <TextView
+        android:id="@+id/tsSkillScavange"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="scavenge skill level" />
+
+    <TextView
+        android:id="@+id/tsSkillmobility"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="mobility Skill level" />
+    
+     <TextView
+        android:id="@+id/tsSkillbuilding"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="buildind skill level" />
+
+     <TextView
+        android:id="@+id/tsCoordinate"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Current location " />
+     
+     
+     <Button
+   	 		android:id="@+id/bsMove"
+   	 		android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	        android:text="move the survivor"
+	        android:layout_weight="20" />
+    
+    <Button
+   	 		android:id="@+id/bsBuildFarm"
+   	 		android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	        android:text="build a Farm"
+	        android:layout_weight="20" />
+</LinearLayout>

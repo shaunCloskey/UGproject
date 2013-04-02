@@ -1,6 +1,8 @@
 package com.shaun.game;
 
 import java.util.ArrayList;
+import java.util.Random;
+
 import utilites.Survivor;
 import utilites.Survivors;
 import android.annotation.SuppressLint;
@@ -24,9 +26,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 
@@ -36,31 +36,39 @@ public class DrawView extends View {
 	private Context gameContext;
 	
 	private Bitmap house1;
-	private Bitmap house2;
-	private Bitmap house3;
-	private Bitmap house4;
+	private Bitmap reEnforced;
+	private Bitmap buildFarm;
+	@SuppressWarnings("unused")
 	private Bitmap tempIcon;
 	private Bitmap singleMan;
 	private Bitmap redMan;
 	private Bitmap partGroup;
 	private Bitmap usedGroup;
 	private Bitmap group;
-	private Bitmap mIcon;
 	private Bitmap moveImage;
 	
+	private Databaseknown knownSur = new Databaseknown(this.getContext());
+	
 	private Survivors survivors;
+	private ArrayList<String> knownSurvivors = new ArrayList<String>();
 	private ArrayList<Point> surPoints = new ArrayList<Point>();
 	private ArrayList<Point> multiPoint = new ArrayList<Point>();
 	
 	private ArrayList<Point> safePoints = new ArrayList<Point>();	
 	private ArrayList<Point> farmPoints = new ArrayList<Point>();
 	
+	@SuppressWarnings("unused")
 	private Boolean moving = false;
-	
+	private Boolean knownEmpt = false;
 	private float mPosX;
 	private float mPosY;
-	boolean firstRun;
+	private int scavengedFood;
+	private int scavangedRes;
 	
+	private String name;
+	
+	boolean firstRun;
+		
 	Matrix matrix;
 	Matrix oMatrix;
 	float [] m = new float [9];
@@ -76,7 +84,6 @@ public class DrawView extends View {
 	
 	private ScaleGestureDetector mScaleDetector;
 	private float mScaleFactor = 1.f;
-	private float maxScale = 3f;
 	
 	Rect clipBounds_canvas;
 	
@@ -130,20 +137,19 @@ public class DrawView extends View {
 	public void sharedConstructing(Context context)
 	{
 		tempIcon = BitmapFactory.decodeResource(getResources(), R.drawable.snoopy);
-		singleMan = BitmapFactory.decodeResource(getResources(), R.drawable.man);
-		redMan = BitmapFactory.decodeResource(getResources(), R.drawable.redman);
+		singleMan = BitmapFactory.decodeResource(getResources(), R.drawable.survivor);
+		redMan = BitmapFactory.decodeResource(getResources(), R.drawable.redsur);
 		partGroup = BitmapFactory.decodeResource(getResources(), R.drawable.partgroup);
-		usedGroup = BitmapFactory.decodeResource(getResources(), R.drawable.redgroup);
-		group = BitmapFactory.decodeResource(getResources(), R.drawable.groupsur);
+		usedGroup = BitmapFactory.decodeResource(getResources(), R.drawable.survivorsred);
+		group = BitmapFactory.decodeResource(getResources(), R.drawable.survivors);
 		
 		
 		// Create our ScaleGestureDetector
-	
 		mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		house1 = BitmapFactory.decodeResource(getResources(), R.drawable.house1);
-		house2 = BitmapFactory.decodeResource(getResources(), R.drawable.house2);
-		house3 = BitmapFactory.decodeResource(getResources(), R.drawable.barber);
-		house4 = BitmapFactory.decodeResource(getResources(), R.drawable.grocer);
+		reEnforced = BitmapFactory.decodeResource(getResources(), R.drawable.reenforced);
+		buildFarm = BitmapFactory.decodeResource(getResources(), R.drawable.farmhouse);
+		
 		moveImage = BitmapFactory.decodeResource(getResources(), R.drawable.bluesquare);
 		
 		
@@ -154,10 +160,18 @@ public class DrawView extends View {
 		
 		// Create our ScaleGestureDetector
 		mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+	
+		knownSur.writeOpen();
+		if(knownSur.isEmpty()){
+			knownEmpt = true;
+		}else{
+			knownSurvivors = knownSur.getKnownSurvivor(name);
+		}
+		knownSur.writeClose();
 	}
 	
 	@SuppressWarnings("deprecation")
-	@SuppressLint("NewApi")
+	@SuppressLint({ "NewApi", "DrawAllocation" })
 	@Override
 	public void onDraw(Canvas canvas) {
 	    super.onDraw(canvas);
@@ -196,8 +210,6 @@ public class DrawView extends View {
 	    	canvas.scale(mScaleFactor, mScaleFactor);
 	    	matrix = canvas.getMatrix();
 	    	drawGrid(canvas);
-	    	//canvas.drawBitmap(mIcon, 0, 0, null);
-	    	//canvas.drawBitmap(overlay, 100, 100, null);
 	    	if(survivors != null)
 	    	{
 	    		drawSur(canvas);
@@ -209,12 +221,6 @@ public class DrawView extends View {
 	    		yIndent = m[5];
 	    		firstRun = false;
 	    	}
-	    
-	    	//m[2] is the x translation
-	    	//m[5] is the y translation
-	    	float x = (m[2] / mScaleFactor) - xIndent;
-	    	float y = (m[5] / mScaleFactor) - yIndent;
-	    	Log.v(TAG, "matrix = " + matrix + "x trans = " +  x + " y translation "  + y);
 	    
 	    	canvas.restore();
 	    }
@@ -229,34 +235,36 @@ public class DrawView extends View {
 		float oneGridWidth = viewWidth / 9;
 		
 		Bitmap grid1 = Bitmap.createScaledBitmap(house1, (int) oneGridWidth, (int) oneGridHeight, true);
-		Bitmap grid2 = Bitmap.createScaledBitmap(house2, (int) oneGridWidth, (int) oneGridHeight, true);
-		Bitmap grid3 = Bitmap.createScaledBitmap(house3, (int) oneGridWidth, (int) oneGridHeight, true);
-		Bitmap grid4 = Bitmap.createScaledBitmap(house4, (int) oneGridWidth, (int) oneGridHeight, true);
 		
 		for(int y=0; y<9;y++)
 		{
 			//do the first 9 across draws for the groups
 			for(int i=0; i<9; i++)
 			{	
-				int gridPlace = ((i+1)*(y+1)) % 4;
-				switch(gridPlace)
-				{
-				case(0):
 					canvas.drawBitmap(grid1, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				case(1):
-					canvas.drawBitmap(grid2, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				case(2):
-					canvas.drawBitmap(grid3, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				case(3):
-					canvas.drawBitmap(grid4, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				}
+				
 			}
 		}
 		
+		if(safePoints != null)
+		{
+			Bitmap safe = Bitmap.createScaledBitmap(reEnforced, (int) oneGridWidth, (int) oneGridHeight, true);
+			
+			for(Point point: safePoints)
+			{
+				canvas.drawBitmap(safe,  oneGridWidth*point.x, oneGridHeight*point.y, null);
+			}
+		}
+		
+		if(farmPoints != null)
+		{
+			Bitmap farm = Bitmap.createScaledBitmap(buildFarm, (int) oneGridWidth, (int) oneGridHeight, true);
+			
+			for(Point point: farmPoints)
+			{
+				canvas.drawBitmap(farm, oneGridWidth*point.x, oneGridHeight*point.y, null);
+			}
+		}
 	}
 
 	public void drawMoveGrid(Canvas canvas)
@@ -265,31 +273,33 @@ public class DrawView extends View {
 		float oneGridWidth = viewWidth / 9;
 		
 		Bitmap grid1 = Bitmap.createScaledBitmap(house1, (int) oneGridWidth, (int) oneGridHeight, true);
-		Bitmap grid2 = Bitmap.createScaledBitmap(house2, (int) oneGridWidth, (int) oneGridHeight, true);
-		Bitmap grid3 = Bitmap.createScaledBitmap(house3, (int) oneGridWidth, (int) oneGridHeight, true);
-		Bitmap grid4 = Bitmap.createScaledBitmap(house4, (int) oneGridWidth, (int) oneGridHeight, true);
 		
 		for(int y=0; y<9;y++)
 		{
 			//do the first 9 across draws for the groups
 			for(int i=0; i<9; i++)
 			{	
-				int gridPlace = ((i+1)*(y+1)) % 4;
-				switch(gridPlace)
-				{
-				case(0):
 					canvas.drawBitmap(grid1, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				case(1):
-					canvas.drawBitmap(grid2, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				case(2):
-					canvas.drawBitmap(grid3, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				case(3):
-					canvas.drawBitmap(grid4, i*oneGridWidth, y*oneGridHeight,null);
-					break;
-				}
+			}
+		}
+		
+		if(safePoints != null)
+		{
+			Bitmap safe = Bitmap.createScaledBitmap(reEnforced, (int) oneGridWidth, (int) oneGridHeight, true);
+			
+			for(Point point: safePoints)
+			{
+				canvas.drawBitmap(safe,  oneGridWidth*point.x, oneGridHeight*point.y, null);
+			}
+		}
+		
+		if(farmPoints != null)
+		{
+			Bitmap farm = Bitmap.createScaledBitmap(buildFarm, (int) oneGridWidth, (int) oneGridHeight, true);
+			
+			for(Point point: farmPoints)
+			{
+				canvas.drawBitmap(farm, oneGridWidth*point.x, oneGridHeight*point.y, null);
 			}
 		}
 		
@@ -375,9 +385,7 @@ public class DrawView extends View {
 					point = new Point(newX, newY);
 					movePlace.add(point);
 				}
-				
 			}
-			
 		}
 	
 		//now use movePlace to draw the points
@@ -402,7 +410,6 @@ public class DrawView extends View {
 		multiTwo = new Point(-1,-1);
 		multiTwoSur = new ArrayList<Survivor>();
 		
-		Log.d(TAG, "size of the survivors = " + survivors.getSurvivors().length);
 		//iterate through all the survivors and place them on the map
 		for(Survivor tempSurvivor: survivors.getSurvivors())
 		{
@@ -412,10 +419,8 @@ public class DrawView extends View {
 				Point point = new Point(tempSurvivor.getX(), tempSurvivor.getY());
 				if(surPoints.isEmpty())
 				{
-					Log.d(TAG, "surpoints is empty");
 				}
 				
-				Log.d(TAG, "points = " + point.x + " " +point.y);
 				
 				if(!(surPoints.contains(point)))
 				{
@@ -461,8 +466,6 @@ public class DrawView extends View {
 		Bitmap oneUsed = Bitmap.createScaledBitmap(partGroup, (int) oneGridWidth, (int) oneGridHeight, true);
 		Bitmap used = Bitmap.createScaledBitmap(usedGroup, (int) oneGridWidth, (int) oneGridHeight, true);
 		Bitmap groupSur = Bitmap.createScaledBitmap(group, (int) oneGridWidth, (int) oneGridHeight, true);
-			
-			
 		
 		for(Point point:surPoints)
 		{
@@ -679,24 +682,15 @@ public class DrawView extends View {
     	float[] values = new float[9];
     	matrix.getValues(values);
     	
-    	Log.d(TAG, "values[0] = " + values[0]);
-    	Log.d(TAG, "values[4] = " + values[4]);
-    	Log.d(TAG, "values[2] = " + values[2]);
-    	Log.d(TAG, "values[5] = " + values[5]);
     	// values[2] and values[5] are the x,y coordinates of the top left corner of the drawable image, regardless of the zoom factor.
     	// values[0] and values[4] are the zoom factors for the image's width and height respectively. If you zoom at the same factor, these should both be the same value.
 
     	// event is the touch event for MotionEvent.ACTION_UP
     	float relativeX = (event.getX() - values[2]) / values[0];
     	float relativeY = (event.getY() - values[5]) / values[4];
-
-    	Log.d(TAG, "relativeX = " + relativeX);
-    	Log.d(TAG, "relativeY = " + relativeY);
     	
     	int squareX = ((int) relativeX / (int)oneGridWidth);
     	int squareY = ((int) relativeY / (int) oneGridHeight);
-    	
-    	Log.d(TAG, "square = " + squareX + " " +squareY );
     	
     	if(moveMode)
     	{
@@ -731,13 +725,11 @@ public class DrawView extends View {
     		//get a list of all survivors in the clicked square
     		for(Survivor survivor:survivors.getSurvivors())
     		{
-    			Log.d(TAG, "surx = " + survivor.getX() + " surY = " + survivor.getY());
     			if(survivor.getX() == squareX && survivor.getY() == squareY )
     			{
     			
     				if(!clickedSur.contains(survivor))
     				{
-    					Log.d(TAG, "adding sur to clickedSur");
     					clickedSur.add(survivor);
     				}
     			}
@@ -747,11 +739,9 @@ public class DrawView extends View {
     		{
     			if(!usedSurvivor.contains(survivor))
     			{
-    				Log.d(TAG, "add to surNames");
     				survivorNames.add(survivor.getName());
     			}
     		}
-    		Log.d(TAG, "survNames.length = " + survivorNames.size());
     		if(survivorNames.size()>0)
     		{
     			listSur(survivorNames);
@@ -764,7 +754,7 @@ public class DrawView extends View {
 		AlertDialog.Builder b = new Builder(gameContext);
 		b.setTitle("select a survivor");
 		int value =0;
-		for(String sur: clickedSur)
+		for(@SuppressWarnings("unused") String sur: clickedSur)
 		{
 			value++;
 		}
@@ -807,121 +797,257 @@ public class DrawView extends View {
 	 * @param index shows index of the survivor that has been chosen
 	 */
 	public void surMenu(String name){
-		final Dialog dialog = new Dialog(gameContext);
-		dialog.setContentView(R.layout.survivor_pop);
-		dialog.setTitle("select action for survivor");
 		
-		//set up the text and info for the survivor info and the buttons
-		Button drop;
+		int type = 0;
+		Survivor selectedSur = survivors.getSurvivor(name);
+        for(Point point: safePoints)
+        {
+        	if(selectedSur.getX() == point.x && selectedSur.getY() == point.y)
+            {
+            	type = 1;
+            }
+        }
+        
+        for(Point point: farmPoints)
+        {
+        	if(selectedSur.getX() == point.x && selectedSur.getY() == point.y)
+        	{
+        		type = 2;
+        	}
+        }
+        
+        final Dialog dialog = new Dialog(gameContext);
+        Button drop;
 		Button scavange;
-	  	Button buildFarm;
-	  	Button useFarm;
-	  	Button buildSafe;
-	  	Button move;
+		Button useFarm;
+		Button buildSafe;
+		Button buildFarm;
+		Button move;
+  	
+  	
+		TextView survivorName;
+		TextView metabSkill;
+		TextView scavangeSkill;
+		TextView mobilitySkill;
+		TextView buildSkill;
+		
+		final Survivor survivor;
+        switch(type)
+        {
+        
+        case(0):
+			dialog.setContentView(R.layout.survivor_pop);
+			dialog.setTitle("select action for survivor");
+		
+			//set up the text and info for the survivor info and the buttons
 	  	
+			survivor = selectedSur;
 	  	
-	  	TextView survivorName;
-	  	TextView metabSkill;
-	  	TextView scavangeSkill;
-	  	TextView mobilitySkill;
-	  	TextView buildSkill;
+			drop = (Button) dialog.findViewById(R.id.bDropSurvivor);
+			scavange = (Button) dialog.findViewById(R.id.bScavange);
+			buildSafe = (Button) dialog.findViewById(R.id.bBuildstruc);
+			move = (Button) dialog.findViewById(R.id.bMove);
+        
+			survivorName = (TextView) dialog.findViewById(R.id.tSurvivorsName);
+			metabSkill = (TextView) dialog.findViewById(R.id.tSkillMetab);
+			scavangeSkill = (TextView) dialog.findViewById(R.id.tSkillScavange);
+			mobilitySkill = (TextView) dialog.findViewById(R.id.tSkillmobility);
+			buildSkill = (TextView) dialog.findViewById(R.id.tSkillbuilding);
+        
+			survivorName.setText(survivor.getName());
+			metabSkill.setText("metab: " + survivor.getMet());
+			scavangeSkill.setText("Scavange: " + survivor.getScav());
+			mobilitySkill.setText("mobility: " + survivor.getMob());
+			buildSkill.setText("build: " + survivor.getbuilding());
+			
+			drop.setOnClickListener(new OnClickListener() {
+				//remove the survivor
+				@Override
+				public void onClick(View v) {
+					survivors.removeSurvivors(survivor.getName());
+					invalidate();
+					dialog.dismiss();
+				}
+			});
+        
+			scavange.setOnClickListener(new OnClickListener() {
+				//do the scavange method
+				@Override
+				public void onClick(View v) {
+					scavanged(survivor);
+					characterUsed(survivor);
+					invalidate();
+					dialog.dismiss();
+				}	
+			});
+        
+			buildSafe.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					scavangedRes -= survivor.getbuilding();
+					addSafe(survivor);
+					characterUsed(survivor);
+					invalidate();
+					dialog.dismiss();
+				}	
+			});
+        
+			move.setOnClickListener(new OnClickListener() {
+				//this requires change to on draw method set a bool value to make the method act slightly different and draw a translutent area around the parts of the grid the person can move to
+				@Override
+				public void onClick(View v) {
+					setMove(survivor);
+					dialog.dismiss();
+				}	
+			});
+			dialog.show();
+			break;
+        case 1:
+			dialog.setContentView(R.layout.safe_pop);
+			dialog.setTitle("select action for survivor");
+		
+			//set up the text and info for the survivor info and the buttons
 	  	
-	  	Survivor tempSurvivor = new Survivor();
-
-	  	//get the info from sorrect survivor
+			survivor = selectedSur;
 	  	
-	  	for(Survivor sur: survivors.getSurvivors())
-	  	{
-	  		if(sur.getName().equals(name)){
-	  			tempSurvivor = sur;
-	  		}
-	  	}
+			drop = (Button) dialog.findViewById(R.id.bsDropSurvivor);
+			buildFarm = (Button) dialog.findViewById(R.id.bsBuildFarm);
+			move = (Button) dialog.findViewById(R.id.bsMove);
+        
+			survivorName = (TextView) dialog.findViewById(R.id.tsSurvivorsName);
+			metabSkill = (TextView) dialog.findViewById(R.id.tsSkillMetab);
+			scavangeSkill = (TextView) dialog.findViewById(R.id.tsSkillScavange);
+			mobilitySkill = (TextView) dialog.findViewById(R.id.tsSkillmobility);
+			buildSkill = (TextView) dialog.findViewById(R.id.tsSkillbuilding);
+        
+			survivorName.setText(survivor.getName());
+			metabSkill.setText("metab: " + survivor.getMet());
+			scavangeSkill.setText("Scavange: " + survivor.getScav());
+			mobilitySkill.setText("mobility: " + survivor.getMob());
+			buildSkill.setText("build: " + survivor.getbuilding());
+			
+			drop.setOnClickListener(new OnClickListener() {
+				//remove the survivor
+				@Override
+				public void onClick(View v) {
+					survivors.removeSurvivors(survivor.getName());
+					invalidate();
+					dialog.dismiss();
+				}
+			});
+        
+			buildFarm.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					scavangedRes -= survivor.getbuilding();
+					addFarm(survivor);
+					characterUsed(survivor);
+					invalidate();
+					dialog.dismiss();
+				}	
+			});
+        
+			move.setOnClickListener(new OnClickListener() {
+				//this requires change to on draw method set a bool value to make the method act slightly different and draw a translutent area around the parts of the grid the person can move to
+				@Override
+				public void onClick(View v) {
+					setMove(survivor);
+					dialog.dismiss();
+				}	
+			});
+			dialog.show();
+        	
+        	break;
+        case 2:
+        	dialog.setContentView(R.layout.farm_pop);
+			dialog.setTitle("select action for survivor");
+		
+			//set up the text and info for the survivor info and the buttons
 	  	
-	  	final Survivor survivor = tempSurvivor;
+			survivor = selectedSur;
 	  	
-	  	drop = (Button) dialog.findViewById(R.id.bDropSurvivor);
-        scavange = (Button) dialog.findViewById(R.id.bScavange);
-        buildFarm = (Button) dialog.findViewById(R.id.bBuildfarm);
-        buildSafe = (Button) dialog.findViewById(R.id.bBuildstruc);
-        move = (Button) dialog.findViewById(R.id.bMove);
+			drop = (Button) dialog.findViewById(R.id.bfDropSurvivor);
+			move = (Button) dialog.findViewById(R.id.bfMove);
+			useFarm = (Button) dialog.findViewById(R.id.bfManFarm);
         
-        survivorName = (TextView) dialog.findViewById(R.id.tSurvivorsName);
-        metabSkill = (TextView) dialog.findViewById(R.id.tSkillMetab);
-        scavangeSkill = (TextView) dialog.findViewById(R.id.tSkillScavange);
-        mobilitySkill = (TextView) dialog.findViewById(R.id.tSkillmobility);
-        buildSkill = (TextView) dialog.findViewById(R.id.tSkillbuilding);
+			survivorName = (TextView) dialog.findViewById(R.id.tfSurvivorsName);
+			metabSkill = (TextView) dialog.findViewById(R.id.tfSkillMetab);
+			scavangeSkill = (TextView) dialog.findViewById(R.id.tfSkillScavange);
+			mobilitySkill = (TextView) dialog.findViewById(R.id.tfSkillmobility);
+			buildSkill = (TextView) dialog.findViewById(R.id.tfSkillbuilding);
         
-        survivorName.setText(survivor.getName());
-        metabSkill.setText("metab: " + survivor.getMet());
-        scavangeSkill.setText("Scavange: " + survivor.getScav());
-        mobilitySkill.setText("mobility: " + survivor.getMob());
-        buildSkill.setText("build: " + survivor.getbuilding());
+			survivorName.setText(survivor.getName());
+			metabSkill.setText("metab: " + survivor.getMet());
+			scavangeSkill.setText("Scavange: " + survivor.getScav());
+			mobilitySkill.setText("mobility: " + survivor.getMob());
+			buildSkill.setText("build: " + survivor.getbuilding());
+			
+			drop.setOnClickListener(new OnClickListener() {
+				//remove the survivor
+				@Override
+				public void onClick(View v) {
+					survivors.removeSurvivors(survivor.getName());
+					invalidate();
+					dialog.dismiss();
+				}
+			});
         
-        drop.setOnClickListener(new OnClickListener() {
-        	//remove the survivor
-        	@Override
-        	public void onClick(View v) {
-        		survivors.removeSurvivors(survivor.getName());
-        		dialog.dismiss();
-        	}
-        });
+			useFarm.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					mannedFarms++;
+					characterUsed(survivor);
+					invalidate();
+					dialog.dismiss();
+				}	
+			});
         
-        scavange.setOnClickListener(new OnClickListener() {
-        	//do the scavange method
-        	@Override
-        	public void onClick(View v) {
-        		addSafe(survivor);
-        	}
-        });
-        
-        buildFarm.setOnClickListener(new OnClickListener() {
-        	//do build farm
-        	@Override
-        	public void onClick(View v) {
-        		addFarm(survivor);
-        	}
-        });
-        
-        buildSafe.setOnClickListener(new OnClickListener() {
-        	@Override
-        	public void onClick(View v) {
-        		
-        	}
-        });
-        
-        move.setOnClickListener(new OnClickListener() {
-        	//this requires change to on draw method set a bool value to make the method act slightly different and draw a translutent area around the parts of the grid the person can move to
-        	@Override
-        	public void onClick(View v) {
-        		setMove(survivor);
-        		dialog.dismiss();
-        	}
-        });
-        dialog.show();
+			move.setOnClickListener(new OnClickListener() {
+				//this requires change to on draw method set a bool value to make the method act slightly different and draw a translutent area around the parts of the grid the person can move to
+				@Override
+				public void onClick(View v) {
+					setMove(survivor);
+					dialog.dismiss();
+				}	
+			});
+			dialog.show();
+        	
+        	break;
+        }
+        	
 	}
 	
 	private void addSafe(Survivor survivor)
 	{
-		//
 		Point point = new Point(survivor.getX(), survivor.getY());
 		safePoints.add(point);
+	}
+	
+	public void setSafePoints(ArrayList<Point> newSafe)
+	{
+		this.safePoints = newSafe;
 	}
 	
 	public ArrayList<Point> getSafe()
 	{
 		return this.safePoints;
 	}
+
 	
 	private void addFarm(Survivor survivor)
 	{
-		//
 		Point point = new Point(survivor.getX(), survivor.getY());
 		farmPoints.add(point);
 	}
 	
-	public ArrayList<Point> getFarm()
+	public ArrayList<Point> getFarms()
 	{
 		return this.farmPoints;
+	}
+	
+	public void setFarms(ArrayList<Point> oldPoints)
+	{
+		this.farmPoints = oldPoints;
 	}
 	
 	
@@ -953,6 +1079,14 @@ public class DrawView extends View {
 	public void setSurvivors(Survivors survivorsNew)
 	{
 		this.survivors = survivorsNew;
+		if(knownEmpt)
+		{
+			for(Survivor survivor : survivors.getSurvivors())
+			{
+				knownSurvivors.add(survivor.getName());
+			}
+			knownEmpt = false;
+		}
 		invalidate();
 	}
 	
@@ -967,9 +1101,39 @@ public class DrawView extends View {
 	        mScaleFactor *= detector.getScaleFactor();
 	        
 	        // Don't let the object get too small or too large.
-	        mScaleFactor = Math.max(1.0f, Math.min(mScaleFactor, 5.0f));
+	        mScaleFactor = Math.max(1.0f, Math.min(mScaleFactor, 5.0f));	
 	        
-	        
+	        float[] values = new float[9];
+	        matrix.getValues(values);
+	    	
+	    	float screenX = viewWidth / mScaleFactor;
+    		float screenY = viewHeight / mScaleFactor;
+    		
+    		float xCheck = Math.abs(mPosX / mScaleFactor) + screenX;
+    		float yCheck = Math.abs(mPosY / mScaleFactor) + screenY;
+    		if(mPosX >=0)
+    		{
+    			mPosX = 0;
+    		}
+    		
+    		if(mPosY >=0)
+    		{
+    			mPosY = 0;
+    		}
+    		
+    		if(xCheck >= viewWidth )
+    		{
+    			//would be outside of boundary so make mPosX = max at this scale.
+    			float maxX = (mScaleFactor * viewWidth) - viewWidth;
+    			mPosX = -maxX;
+    			
+    		}
+    		
+    		if(yCheck >= viewHeight)
+    		{
+    			float maxY = (mScaleFactor * viewHeight) - viewHeight;
+    			mPosY = -maxY;
+    		}
 	        
 	        invalidate();
 	        return true;
@@ -980,11 +1144,157 @@ public class DrawView extends View {
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
 	   viewWidth = MeasureSpec.getSize(widthMeasureSpec);
 	   viewHeight = MeasureSpec.getSize(heightMeasureSpec);
-	   mIcon = Bitmap.createScaledBitmap(tempIcon, viewWidth, viewHeight, true);
 	   
 	   super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 	}
 
+	
+	private void scavanged(Survivor s)
+	{
+		
+		// take the point and create the maximum food for the square using the distance of the point from Home point
+		
+   		Random generator = new Random();
+   		int getSur = generator.nextInt(10);
+   		if(getSur>=7)
+   		{
+   			int surInd = generator.nextInt(OpeningScreenActivity.survivorNames.length);
+   			Survivor newSurvivor = new Survivor();
+   			boolean found = false;
+   			while(!found)
+   			{
+   				//get random new survivor 
+   				String newName = OpeningScreenActivity.survivorNames[surInd];
+   				if((!knownSurvivors.contains(newName)))
+   				{
+   					int mob = generator.nextInt(5) + 1;
+   					int scav = generator.nextInt(5) + 1;
+   					int build = generator.nextInt(5) + 1;
+   					int metab = generator.nextInt(5) + 1;
+   					newSurvivor = new Survivor(mob, scav, build, metab, newName,s.getX(),s.getY());
+   					found=true;
+   				}else{
+   					surInd = generator.nextInt(OpeningScreenActivity.survivorNames.length);
+   				}
+   				if(knownSurvivors.size() == 20)
+   				{
+   					found=true;
+   				}
+   			}
+
+   			if(survivors.isFull())
+   			{
+   				// prompt the user to drop a survivor if they want to keep the current one
+   				AlertDialog.Builder alert = new AlertDialog.Builder(gameContext);
+   				alert.setTitle("YOU FOUND A NEW SURVIVOR");
+   				alert.setMessage("you already have the maxium space for survivors, would you like to drop one of your current survivors for " + newSurvivor.getName() + "?");
+   				final Survivor tempNewSurvivor = newSurvivor;
+   				
+   				alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+   				public void onClick(DialogInterface dialog, int whichButton) {
+   					AlertDialog.Builder b = new Builder(gameContext);
+   	   				b.setTitle("select a survivor to drop for new survivor " + tempNewSurvivor.getName());
+   	   				Survivor[] survivorList = survivors.getSurvivors();
+   	   				String [] list = new String[survivorList.length];
+   	   				for(int i=0; i<survivorList.length; i++)
+   	   				{
+   	   					 list[i] = survivorList[i].getName();
+   	   				}
+   	   				final String [] surList = list;
+   	   				b.setSingleChoiceItems(surList, 0, new DialogInterface.OnClickListener() {
+   	   					public void onClick(DialogInterface dialog, int item) {  
+   	   						//item is the index of the chosen item
+   	   					}
+   	   				});
+   	   				
+   	   				b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+   	   		            public void onClick(DialogInterface dialog, int whichButton) {
+   	   		                dialog.dismiss();
+   	   		                int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+   	   		                //the selectedPosition can tell what sur has been chosen
+   	   		                
+   	   		                survivors.removeSurvivors(surList[selectedPosition]);
+   	   		                knownSurvivors.add(tempNewSurvivor.getName());
+   	    	   				survivors.add(tempNewSurvivor);
+   	   		            }
+   	   				});
+   	   				
+   	   				b.setNegativeButton("cancel",  new DialogInterface.OnClickListener() {
+   	   					public void onClick(DialogInterface dialog, int item) {  
+   	   						knownSurvivors.add(tempNewSurvivor.getName());
+   	   					}
+   	   				});
+   	   				
+   	   				AlertDialog alertInner = b.create();
+   	   				alertInner.show();
+   				}
+   				});
+   				
+   				alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+   	   				public void onClick(DialogInterface dialog, int whichButton) {
+   	   					//dont keep newSurvivor
+   	   				}
+   				});
+   				alert.show();
+   			}else{
+   				//ask if the user wants to keep the new survivor
+   				
+   				AlertDialog.Builder alert = new AlertDialog.Builder(gameContext);
+   				
+   				final Survivor tempNewSurvivor = newSurvivor;
+   				
+   				alert.setTitle("while scavenging " + s.getName() + " found a survivor");
+   				alert.setMessage("keep survivor " + newSurvivor.getName());
+
+   				alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+   				public void onClick(DialogInterface dialog, int whichButton) {
+   					knownSurvivors.add(tempNewSurvivor.getName());
+   	   				survivors.add(tempNewSurvivor);
+   				}
+   				});
+
+   				alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+   				 public void onClick(DialogInterface dialog, int whichButton) {
+   				     // Canceled.
+   					knownSurvivors.add(tempNewSurvivor.getName());
+   				}
+   				});
+   				
+   				alert.show();
+   			}
+   		}
+   		
+   		int maxFood = generator.nextInt(3);
+   		
+   		// take the skill of the survivor and work out how much food is lost
+   		int foodSca = s.getScav();
+   		int addedFood = generator.nextInt(foodSca);
+   		
+   		int foodVal = maxFood + addedFood;
+   		scavengedFood += foodVal;
+   		
+   		//do above for resources
+   		int maxResources = generator.nextInt(3);
+   		
+   		int resSca = s.getScav();
+   		int addedRes = generator.nextInt(resSca);
+   		
+   		int resVal = maxResources + addedRes;
+   		scavangedRes += resVal;
+   		
+   		
+   	}
+	
+	public int getScavFood()
+	{
+		return this.scavengedFood;
+	}
+	
+	public int getScavRes()
+	{
+		return this.scavangedRes;
+	}
+	
 	public int getMaddedFarms() {
 		return mannedFarms;
 	}
@@ -992,5 +1302,18 @@ public class DrawView extends View {
 	public void setMannedFarms()
 	{
 		this.mannedFarms = 0;
+	}
+
+	public void setSaveName(String name) {
+		this.name = name;
+	}
+
+	public void resetBoard() {
+		mScaleFactor = (float) 1.0;
+		
+		
+		mPosX = 0;
+		mPosY = 0;
+		invalidate();
 	}
 }

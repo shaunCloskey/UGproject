@@ -1,28 +1,24 @@
 package com.shaun.game;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import utilites.Survivor;
 import utilites.Survivors;
 import utilites.probHandler;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class GameScreenActivity extends Activity {
@@ -58,14 +54,15 @@ public class GameScreenActivity extends Activity {
 	
 	private Context context;
 	
-	private static final String TAG = "MyActivity";
 	private Survivors survivors;
 	
 	private ArrayList<Point> safePoints = new ArrayList<Point>();	
 	private ArrayList<Point> farmPoints = new ArrayList<Point>();
 	
 	private DatabaseSave database = new DatabaseSave(GameScreenActivity.this);
-	private DatabaseSurvivor surData = new DatabaseSurvivor(GameScreenActivity.this); 
+	private DatabaseSurvivor surData = new DatabaseSurvivor(GameScreenActivity.this);
+	private DatabaseSafe safeData = new DatabaseSafe(GameScreenActivity.this);
+	private DatabaseFarms farmData = new DatabaseFarms(GameScreenActivity.this);
 	
 	 public void onCreate(Bundle savedInstanceState) {
     	 super.onCreate(savedInstanceState);
@@ -75,18 +72,18 @@ public class GameScreenActivity extends Activity {
          getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
          // set our MainGamePanel as the View
          setContentView(R.layout.game_screen);
-         
          context = getApplicationContext();
          drawView = (DrawView) findViewById(R.id.map);
          drawView.giveContext(this);
          Bundle extras = getIntent().getExtras();
          name  = extras.getString("saveName");
-         
+         drawView.setSaveName(name);
          database.writeOpen();
          food = database.getFoodCount(name);
          resource = database.getResourceCount(name);
          turn = database.getTurnCount(name);
          database.writeClose();
+         
          
          tFood = (Button) findViewById(R.id.tFoodCount);
          tFood.setText("food:" + food);
@@ -115,37 +112,66 @@ public class GameScreenActivity extends Activity {
          
          survivorCount = surCount;
          
+         safeData.writeOpen();
+         if(safeData.isEmpty(name))
+         {
+        	 safePoints.add(new Point(4,4));
+         }else{
+        	 safePoints = safeData.getSafePoints(name);
+         }
+         safeData.writeClose();
+         
+         farmData.writeOpen();
+         if(farmData.isEmpty(name))
+         {
+         }else{
+        	 farmPoints = farmData.getFarmPoints(name);
+         }
+         farmData.writeClose();
+         
          tSurvivorCount = (Button) findViewById(R.id.tSurCount);
          tSurvivorCount.setText("surv Count:" + survivorCount);
          tSurvivorCount.setTextSize(10);
          
-         Log.d(TAG, "about to set survivors in draw view");
          drawView.setSurvivors(survivors);
-         Survivor [] sur = survivors.getSurvivors();
-         Log.d(TAG, "survivors = " + sur[0].getName());
          
+         drawView.setSafePoints(safePoints);
+         drawView.setFarms(farmPoints);
          
          bEndTurn = (Button) findViewById(R.id.bEndTurn);
          bEndTurn.setOnClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
-				//TODO Auto-generated method stub
 				turn++;
 				betweenTurnEvents(turn);
 				update();
 				drawView.emptyUsedSur();
-				
-				
-				
 			}
         	 
          });
          
          
          bQuit = (Button) findViewById(R.id.bQuit);
+         bQuit.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent ourIntent = new Intent(GameScreenActivity.this, newGame.class);
+     			startActivity(ourIntent);
+     			finish();
+			}
+		});
+         
          
          bHome = (Button) findViewById(R.id.bHome);
+         bHome.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				drawView.resetBoard();
+			}
+		});
          
          bSave = (Button) findViewById(R.id.bSave);
          bSave.setOnClickListener(new View.OnClickListener() {
@@ -207,8 +233,9 @@ public class GameScreenActivity extends Activity {
 					database.writeClose();
 					if((saveTemp.length - 1)==5)
 					{
-						//TODO tell user that there are two many saves ask if they wish to delete one
-						
+						//tell user that there are two many saves ask if they wish to delete one
+						showSavesFull(value);
+					
 					}else{
 						//save new info to the database
 						saveNewGame(value);
@@ -227,6 +254,84 @@ public class GameScreenActivity extends Activity {
 			 alert.show();
 	 }
 	 
+	 private void showSavesFull(String saveName) {
+		 	final String newSaveName = saveName; 
+		 	AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+			alert.setTitle("no space");
+			alert.setMessage("you have 5 saves would you,ike to remove a save space to save current game?");
+
+			alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				//display saves
+				displayOversave(newSaveName);
+			}
+			});
+			
+			
+			alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+				}
+				});
+			alert.show();
+	}
+	 
+	public void displayOversave(String saveName){
+		final String newSaveName = saveName;
+		AlertDialog.Builder b = new Builder(this);
+		b.setTitle("select a save file to overwrite");
+		database.writeOpen();
+		final String [] saveList = database.getSaveNames();
+		database.writeClose();
+		b.setSingleChoiceItems(saveList, 0, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int item) {  
+				//item is the index of the chosen item
+			}
+		});
+			
+		b.setPositiveButton("delete", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+					int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+	                //the selectedPosition can tell what save file to remove
+	                
+	                String saveName = saveList[selectedPosition];
+	                //remove from saves
+	                database.writeOpen();
+	                database.removeEntry(saveName);
+	                database.writeClose();
+	                
+	                //remove from survivors
+	                surData.writeOpen();
+	                surData.removeEntry(saveName);
+	                surData.writeClose();
+	                
+	                //remove from safe
+	                safeData.writeOpen();
+	                safeData.removeEntry(saveName);
+	                safeData.writeClose();
+	                
+	                
+	                //remove from farms
+	                farmData.writeOpen();
+	                farmData.removeEntry(saveName);
+	                farmData.writeClose();
+	                
+	                saveNewGame(newSaveName);
+	                
+	                dialog.dismiss();
+	            }
+		});
+			
+		b.setNegativeButton("cancel",  new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int item) {  
+				
+			}
+		});
+			
+		AlertDialog alertInner = b.create();
+		alertInner.show();
+	}
+	 
 	 /**
 	  * runs though all the probabilities for the game and determines if an event has occured
 	  * 
@@ -244,16 +349,14 @@ public class GameScreenActivity extends Activity {
 	  	int desertCount = 0;
 
 	  	safePoints = drawView.getSafe();
-	  	farmPoints = drawView.getFarm();
+	  	farmPoints = drawView.getFarms();
 	  	
 	  	survivors = drawView.getSurvivors();
 	  	
 	  	List<String> toRemove =new ArrayList<String>();
-	  	Log.d(TAG, "the number of survivors is "  + OpeningScreenActivity.survivors.size());
 	  		
 	  		
 	  	//run through all survivors and determine if events have occurred
-	  		
 	  	if(turn > 2)
 	  	{
 	  		for(Survivor survivor : survivors.getSurvivors() )
@@ -261,19 +364,6 @@ public class GameScreenActivity extends Activity {
 	  			boolean isSafe = false;
 	  			Point surPoint = new Point(survivor.getX(), survivor.getY());
 	  			isSafe = safePoints.contains(surPoint);
-	  			for(Point point: safePoints)
-	  			{
-	  				Point testPointUp = new Point(surPoint.x, surPoint.y - 1);
-	  				Point testPointDown = new Point(surPoint.x, surPoint.y + 1);
-	  				Point testPointLeft = new Point(surPoint.x-1, surPoint.y);
-	  				Point testPointRight = new Point(surPoint.x+1, surPoint.y);
-	  				
-	  				if(surPoint.equals(testPointUp) ||surPoint.equals(testPointDown) ||surPoint.equals(testPointLeft) ||surPoint.equals(testPointRight) )
-	  				{
-	  					isSafe = true;
-	  				}
-	  				
-	  			}
 	  			
 	  			if(!isSafe)
 	  			{
@@ -307,7 +397,6 @@ public class GameScreenActivity extends Activity {
 	  					desertCount++;
 	  					//remove the said survivor from the list
 	  					toRemove.add(name);
-	  					Log.d(TAG, "desert event need to remove " + name);
 	  				}
 	  			}
 	  			dogInfo = "there was " + dogCount +" dog attack, you lost "  + dogCount * dogRed + "  food.\n";
@@ -322,7 +411,6 @@ public class GameScreenActivity extends Activity {
 	  		{
 	  			desertInfo.concat(x + " has deserted you! they stole " + desertRed + "food and left.\n");
 	  			survivors.removeSurvivors(x);
-	  			Log.d(TAG, "removed" + x);
 	  		}
 	  	}
   		
@@ -331,12 +419,31 @@ public class GameScreenActivity extends Activity {
 	  		int metab = survivor.getMet();
 	  		food -= (int) (metab/2);
 	  	}
-	  		
+	  	food+=drawView.getScavFood();
+	  	resource+=drawView.getScavRes();
 	  	int manedFarms = drawView.getMaddedFarms();
 	  	food += manedFarms * 4;
 	  	String farmInfo = "you recieved " + (manedFarms * 4) + "food from farms.\n";
   		manedFarms  = 0;
+  		drawView.setMannedFarms();
   		//feedBack = dogInfo + banditInfo + fireInfo + desertInfo + farmInfo;
+  		
+  		if(food<=0 || survivors.getSurvivors().length==0)
+  		{
+  			//tell the user they lost and why use alert
+  			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+			alert.setTitle("GAME OVER");
+			alert.setMessage("Game over you ran out of food, or all your survivors left/died");
+
+			alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				Intent ourIntent = new Intent(GameScreenActivity.this, OpeningScreenActivity.class);
+	 			startActivity(ourIntent);
+			}
+			});
+			alert.show();
+  		}
   	 }
 	 
 	 /**
@@ -353,20 +460,33 @@ public class GameScreenActivity extends Activity {
 		surData.writeOpen();
 		//remove all entries where savename = name
 		surData.removeEntry(name);
-		
 		for(Survivor survivor: survivors.getSurvivors())
 		{
 			if(!survivor.getName().equals(empty))
 			{
-				Log.d(TAG, "sur name: "+survivor.getName());
-				Log.d(TAG, "sur build: "+survivor.getbuilding());
-				Log.d(TAG, "sur met: "+survivor.getMet());
-				Log.d(TAG, "sur mob: "+survivor.getMob());
-				
 				surData.createSurEntry(name, survivor.getbuilding(), survivor.getMet(), survivor.getMob(), survivor.getScav(), survivor.getName(), survivor.getX(), survivor.getY());
 			}
 		}
 		surData.writeClose();
+		
+		//retreiw the safe points and the farm points
+		safePoints = drawView.getSafe();
+		safeData.writeOpen();
+		safeData.removeEntry(name, 0);
+		for(Point point: safePoints)
+		{
+			safeData.createEntry(name, point);
+		}
+		safeData.writeClose();
+		
+	  	farmPoints = drawView.getFarms();
+	  	farmData.writeOpen();
+		farmData.removeEntry(name, 0);
+		for(Point point: farmPoints)
+		{
+			farmData.createEntry(name, point);
+		}
+		farmData.writeClose();
 	 }	
 	 
 	 /**
@@ -383,16 +503,28 @@ public class GameScreenActivity extends Activity {
 			{
 				if(!survivor.getName().equals(empty))
 				{
-					Log.d(TAG, "sur name: "+survivor.getName());
-					Log.d(TAG, "sur build: "+survivor.getbuilding());
-					Log.d(TAG, "sur met: "+survivor.getMet());
-					Log.d(TAG, "sur mob: "+survivor.getMob());
-					
 					surData.createSurEntry(name, survivor.getbuilding(), survivor.getMet(), survivor.getMob(), survivor.getScav(), survivor.getName(), survivor.getX(), survivor.getY());
 				}
 			}
 		 surData.writeClose();
 		 
+		 safePoints = drawView.getSafe();
+		 safeData.writeOpen();
+		 for(Point point:safePoints)
+		 {
+			 safeData.createEntry(name, point);
+		 }
+		 safeData.writeClose();
+		 
+		 farmPoints = drawView.getFarms();
+		 farmData.writeOpen();
+		 for(Point point:safePoints)
+		 {
+			 farmData.createEntry(name, point);
+		 }
+		 farmData.writeClose();
+		 
+		 this.name = name;
 	}
 	 
 	 private void promptOverwrite(String value) {
@@ -414,7 +546,8 @@ public class GameScreenActivity extends Activity {
 			}
 			});
 
-			 alert.show();
+			alert.show();
+			this.name = name;
 	 }
 	 
 	 private void update() {
@@ -440,7 +573,6 @@ public class GameScreenActivity extends Activity {
         		 surCount++;
         	 }
          }
-         
          survivorCount = surCount;
          tSurvivorCount.setText("NO surv:" + survivorCount);
 	     

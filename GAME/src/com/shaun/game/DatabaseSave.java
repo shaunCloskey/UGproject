@@ -6,8 +6,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import utilites.Survivor;
-import utilites.Survivors;
 
 /*
  * this is a database that stores all the info for playing the game,
@@ -176,22 +174,6 @@ public class DatabaseSave{
 		return Names;
 	}
 	
-	
-	
-	
-	
-	/*public SafePoints getSafePoints(String saveName)
-	{
-		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table 
-		Cursor c = this.theDataBase.rawQuery("select * from " + DATABASE_SAVE + " where " + KEY_SAVENAME + "='" + saveName + "'" , null);
-				
-		int index = c.getColumnIndex(KEY_SAFEPOINTS);
-		SafePoints safePoints = (SafePoints) SafePoints.deserializeObject(c.getBlob(index));
-				
-		return safePoints;
-	}
-	*/
-	
 	public int getResourceCount(String saveName)
 	{
 		//cursor is used in all get methods to query the database, a switch is used to make sure it is checking the correct database table 
@@ -275,7 +257,7 @@ public class DatabaseSave{
 	}
 	
 	
-	public void removeEntry(String saveName, int type) {
+	public void removeEntry(String saveName) {
 		theDataBase.delete(DATABASE_SAVE, KEY_SAVENAME + "='" + saveName +"'", null);
 	}
 
